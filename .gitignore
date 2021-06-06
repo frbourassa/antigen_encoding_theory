@@ -5,3 +5,7 @@
 .ipynb_checkpoints/
 *__pycache__/
 *.DS_Store
+*.npy
+*.npz
+*.mp4
+*.m4a
