@@ -1,0 +1,7 @@
+*.pkl
+*.pdf
+*.png
+*.hdf
+.ipynb_checkpoints/
+*__pycache__/
+*.DS_Store
