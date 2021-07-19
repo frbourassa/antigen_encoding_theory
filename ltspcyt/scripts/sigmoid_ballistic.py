@@ -347,7 +347,7 @@ def ballistic_sigmoid_freealpha(times, a0, t0, theta, v1, alpha, beta, v2v1_rati
 ### FUNCTIONS PERFORMING THE FIT FOR EACH TIME COURSE
 # Find the best fit for each time course in the DataFrame.
 def return_fit_params(df, func, bounds, p0, param_labels, time_scale=20,
-                        reg_rate=None, offsets=None, func_kwargs={}):
+                        reg_rate=None, offsets=None, correls=None, func_kwargs={}):
     # Initialize a dataframe that will record parameters and parameter variances fitted to each curve.
     var_param_labels = ["var" + param for param in param_labels]
     cols = param_labels+var_param_labels
@@ -376,7 +376,7 @@ def return_fit_params(df, func, bounds, p0, param_labels, time_scale=20,
         try:
             popt, pcov, jac = curve_fit_jac(func, xdata=xdata, ydata=ydata,
                               absolute_sigma=True, bounds=bounds, p0=p0, reg_rate=reg_rate,
-                              offsets=offsets, func_kwargs=func_kwargs)
+                              offsets=offsets, correls=correls, func_kwargs=func_kwargs)
         except RuntimeError as e:
             print("Could not fit {}".format(idx))
             popt, pcov = np.full([nparams], np.nan), np.full([nparams, nparams], np.nan)
@@ -433,7 +433,7 @@ def combine_spline_df_with_fit(df, df_fit):
 
 
 def return_param_and_fitted_latentspace_dfs(df, fittingFunctionName, reg_rate=1.,
-    time_scale=20., reject_neg_slope=False):
+    time_scale=20., correls=None, reject_neg_slope=False, special_bounds_dict={}):
     """Returns parameterized dataframes to put into plotting GUI
     Args:
         df (pd.DataFrame): latent space data sampled from splines
@@ -442,8 +442,15 @@ def return_param_and_fitted_latentspace_dfs(df, fittingFunctionName, reg_rate=1.
         reg_rate (float or None): if None, no regularization.
             Else, regularization rate in curve_fit_jac
         time_scale (float): Rescaling factor for time, default 20 hours.
-        reject_neg_slope (bool): default False (accept negative slopes). Use
+        correls (np.ndarray): 2d array of integers, shape (4, nb correlations).
+            Each column specifies a regularization term of the form
+                c*(p_i - a*p_j - b)^2
+            the first row is the parameter index i, the second is j,
+            the third is a, the fourth is b and the fifth is c.
+            a, b and c are given as ten thousandths.
+        reject_neg_slope (bool or float): default False (accept negative slopes). Use
             only if needed, e.g. constant velocity with lack of IL-2 decay.
+            If a float is passed, it is used as the pre-determined slope.
     Returns:
         df_params (pd.DataFrame): contains all parameters from fitting function
         df_compare (pd.DataFrame): combined dataframe with additional
@@ -467,24 +474,29 @@ def return_param_and_fitted_latentspace_dfs(df, fittingFunctionName, reg_rate=1.
                  'Constant force': ballistic_F,
                  'Sigmoid':ballistic_sigmoid,
                  'Sigmoid_freealpha': ballistic_sigmoid_freealpha}
-    bounds_dict = {
-        'Constant velocity':[(0, 0, 0, 0), (5, 5, np.pi, 5)],
-        'Constant force': [(0, 0, 0, 0), (5, 5, np.pi, 5)],
-        'Sigmoid':[(0, 0, -2*np.pi/3, 0, time_scale/50),
+
+    if special_bounds_dict == {}:
+        bounds_dict = {
+            'Constant velocity':[(0, 0, 0, 0), (5/20.*time_scale, 5/20.*time_scale, np.pi, 5/20.*time_scale)],
+            'Constant force': [(0, 0, 0, 0), (5/20.*time_scale, 5/20.*time_scale, np.pi, 5/20.*time_scale)],
+            'Sigmoid':[(0, 0, -2*np.pi/3, 0, time_scale/50),
                     (5, (duration + 20)/time_scale, np.pi/3, 1, time_scale/2)],
-        'Sigmoid_freealpha':[(0, 0, -2*np.pi/3, 0, time_scale/50, time_scale/50),
+            'Sigmoid_freealpha':[(0, 0, -2*np.pi/3, 0, time_scale/50, time_scale/50),
                             (5, (duration + 20)/time_scale, np.pi/3, 1,
                             time_scale/2, time_scale/2)]
         }
+    else:
+        bounds_dict = special_bounds_dict
+
     p0_dict = {
         'Constant velocity':[1, 1, 1, 1],
         'Constant force':[1, 1, 1, 1],
         'Sigmoid':[1, 30 / time_scale, 0, 0.1, 1/7 * time_scale],
-        'Sigmoid_freealpha':[1, 30/time_scale, 0, 0.1, 1/7 * time_scale, 1.]
+        'Sigmoid_freealpha':[2, 40/time_scale, 0, 0.1, 1/7 * time_scale, 1.0]
     }
     param_offsets_dict = {
-        'Constant velocity': np.zeros(4),
-        'Constant force': np.zeros(4),
+        'Constant velocity': bounds_dict["Constant velocity"][0],  # low bounds
+        'Constant force': bounds_dict["Constant force"][0],  # typically zeros
         'Sigmoid': np.array([0, 0, -np.pi/2, 0, 1]),
         'Sigmoid_freealpha': np.array([0, 0, -np.pi/2, 0, 1, 1])
     }
@@ -494,7 +506,7 @@ def return_param_and_fitted_latentspace_dfs(df, fittingFunctionName, reg_rate=1.
     bounds = bounds_dict[fittingFunctionName]
     p0 = p0_dict[fittingFunctionName]
     param_labels = param_labels_dict[fittingFunctionName]
-    if reg_rate is None or abs(reg_rate) < 1e-16:
+    if reg_rate is None or np.all(np.abs(reg_rate)) < 1e-16:
         param_offsets = None  # Avoid a warning in curve_fit_jac
     else:
         param_offsets = param_offsets_dict[fittingFunctionName]
@@ -508,10 +520,13 @@ def return_param_and_fitted_latentspace_dfs(df, fittingFunctionName, reg_rate=1.
     for dataset in datasets:
         print(dataset)
         datasetDf = df.xs([dataset], level=['Data'])
-        v2_v1_ratio = compute_v2_v1(datasetDf, reject_neg_slope=reject_neg_slope)
+        if isinstance(reject_neg_slope, bool):
+            v2_v1_ratio = compute_v2_v1(datasetDf, reject_neg_slope=reject_neg_slope)
+        elif isinstance(reject_neg_slope, float):
+            v2_v1_ratio = reject_neg_slope
         dataset_df_params, dataset_df_hess = return_fit_params(
             datasetDf, func, bounds, p0, param_labels, time_scale=time_scale,
-            reg_rate=reg_rate, offsets=param_offsets,
+            reg_rate=reg_rate, offsets=param_offsets, correls=correls,
             func_kwargs={"v2v1_ratio":v2_v1_ratio})
 
         # Compute latent space coordinates from parameters fits

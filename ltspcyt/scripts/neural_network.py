@@ -6,10 +6,7 @@ import pickle
 import sys
 import numpy as np
 import pandas as pd
-from sys import platform as sys_pf
-if sys_pf == 'darwin':
-    import matplotlib
-    matplotlib.use("TkAgg")
+
 from sklearn import neural_network
 import matplotlib.pyplot as plt
 import tkinter as tk

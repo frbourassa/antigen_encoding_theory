@@ -36,6 +36,7 @@ def _wrap_func_simple(func, xdata, ydata, transform, func_kwargs={}):
             return solve_triangular(transform, residuals, lower=True)
     return func_wrapped
 
+
 def _wrap_func_regul(func, xdata, ydata, transform, reg_rate, offsets, func_kwargs={}):
     # Func can be a m-dimensional vector function, return a m x len(xdata)
     # Then ydata must also have that shape.
@@ -81,6 +82,67 @@ def _wrap_func_regul(func, xdata, ydata, transform, reg_rate, offsets, func_kwar
     # Return the appropriate wrapper
     return func_wrapped
 
+
+def _wrap_func_regul_correl(func, xdata, ydata, transform, reg_rate, offsets, corr, func_kwargs={}):
+    """ Args:
+        corr (np.ndarray): 2d array of integers, shape (5, number of correlations)
+            Each column specifies a regularization term of the form
+            c*(p_i - a*p_j - b)^2
+            - The first row of a column gives i (index of first parameter)
+            - The 2nd row gives j, index of the second parameter
+            - The 3rd row gives a, the proportionality constant
+            - The 4th row gives b, the intercept
+            - The 5th row gives c, the coefficient in front of the term
+        a, b and c are given as ten thousandths.
+    """
+    # Func can be a m-dimensional vector function, return a m x len(xdata)
+    # Then ydata must also have that shape.
+    if transform is None:
+        # Concatenate the residuals with reg_rate*sqrt(abs((parameters - offsets)))
+        def func_wrapped(params):
+            residuals = func(xdata, *params, **func_kwargs) - ydata
+            # Assuming the list of residuals has the same length as the list of parameters
+            # Should be checked in curve_fit_jac
+            regul = reg_rate * np.sqrt(np.abs(np.asarray(params) - offsets))
+            correl = (corr[4]/10000.0) * (params[corr[0]] - (corr[2]/10000.0)*params[corr[1]] - corr[3]/10000.0)**2
+            return np.concatenate([residuals.flatten(), regul, correl])
+
+    elif transform.ndim == 1:
+        # If we have a m-dimensional function and independent variance for each,
+        # make sure transform is a flattened array with all points of one
+        # dimension next to each other
+        def func_wrapped(params):
+            residuals = transform * (func(xdata, *params, **func_kwargs) - ydata).flatten()
+            regul = reg_rate * np.sqrt(np.abs(np.asarray(params) - offsets))
+            correl = (corr[4]/10000.0) * (params[corr[0]] - (corr[2]/10000.0)*params[corr[1]] - corr[3]/10000.0)**2
+            return np.concatenate([residuals, regul, correl])
+    else:
+        # Chisq = (y - yd)^T C^{-1} (y-yd)
+        # transform = L such that C = L L^T
+        # C^{-1} = L^{-T} L^{-1}
+        # Chisq = (y - yd)^T L^{-T} L^{-1} (y-yd)
+        # Define (y-yd)' = L^{-1} (y-yd) by solving
+        # L (y-yd)' = (y-yd)
+        # and minimize (y-yd)'^T (y-yd)'
+        # Make sure transform is a (m * len(xdata)) x (m * len(xdata)) matrix
+        # if func is m-dimensional. So it's a block matrix where each block
+        # is the covariance between points on one of the dimensions and another
+        # C = [C_{11} C_{12} ...  C_{1m}]
+        #     [C_{21} C_{22} ...  C_{2m}]
+        #     [...    ...    ...   ...  ]
+        #     [C_{m1} C_{m2} ...  C_{mm}]
+        # where C_{ij} is a len(xdata) x len(xdata) matrix
+        def func_wrapped(params):
+            residuals = (func(xdata, *params, **func_kwargs) - ydata).flatten()
+            residuals = solve_triangular(transform, residuals, lower=True)
+            regul = reg_rate * np.sqrt(np.abs(np.asarray(params) - offsets))
+            correl = (corr[4]/10000.0) * (params[corr[0]] - (corr[2]/10000.0)*params[corr[1]] - corr[3]/10000.0)**2
+            return np.concatenate([residuals, regul, correl])
+
+    # Return the appropriate wrapper
+    return func_wrapped
+
+
 # This is exactly the scipy default function but with func_kwargs.
 def _wrap_jac_simple(jac, xdata, transform, func_kwargs={}):
     if transform is None:
@@ -97,7 +159,8 @@ def _wrap_jac_simple(jac, xdata, transform, func_kwargs={}):
 ### Custom curve_fit returns the jacobian too and uses the upgraded wrappers.
 def curve_fit_jac(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=False,
               check_finite=True, bounds=(-np.inf, np.inf), method=None,
-              jac=None, reg_rate=None, offsets=None, func_kwargs={}, **kwargs):
+              jac=None, reg_rate=None, offsets=None, correls=None,
+              func_kwargs={}, **kwargs):
     """
     Use non-linear least squares to fit a function, f, to data.
 
@@ -182,14 +245,26 @@ def curve_fit_jac(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=False,
         one dimension next to each other.
 
         .. versionadded:: custom
-    reg_rate : float or None, optional
+    reg_rate : array, float or None, optional
         Magnitude of the regularization term, which is the L1 norm of parameters
-        centered on offsets.
+        centered on offsets. Can be a vector of the same length as
+        the vector of parameters p0.
 
         .. versionadded:: custom
     offsets : list, np.ndarray or None, optional
         Values of the parameters that minimize the regularization term,
         reg_rate * |parameters - offsets| .
+
+        .. versionadded:: custom
+    correls (np.ndarray): 2d array of integers, shape (5, number of correlations)
+            Each column specifies a regularization term of the form
+            c*(p_i - a*p_j - b)^2
+            - The first row of a column gives i (index of first parameter)
+            - The 2nd row gives j, index of the second parameter
+            - The 3rd row gives a, the proportionality constant
+            - The 4th row gives b, the intercept
+            - The 5th row gives c, the coefficient in front of the term
+        a, b and c are given as ten thousandths.
 
         .. versionadded:: custom
     func_kwargs : dict, optional
@@ -255,8 +330,8 @@ def curve_fit_jac(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=False,
     Box constraints can be handled by methods 'trf' and 'dogbox'. Refer to
     the docstring of `least_squares` for more information.
     """
-    # Functions needed: _getargspec, _initialize_feasible, prepare_bounds, cholesky, _wrap_func, _wrap_jac,
-    # svd, least_squares, leastsq, warnings
+    # Functions needed: _getargspec, _initialize_feasible, prepare_bounds,
+    # cholesky, _wrap_func, _wrap_jac, svd, least_squares, leastsq, warnings
     if p0 is None:
         # determine number of parameters by inspecting the function
         from scipy._lib._util import getargspec_no_self as _getargspec
@@ -323,21 +398,27 @@ def curve_fit_jac(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=False,
         transform = None
 
     # Function wrapper that returns residuals and regularization term
-    if reg_rate is None or abs(reg_rate) < 1e-16:  # if reg_rate is negative, will be squared, OK
+    # if reg_rate is negative, will be squared, OK
+    if reg_rate is None or np.all(np.abs(reg_rate)) < 1e-16:
         if offsets is not None:
             print("No regularization applied, reg_rate={} invalid".format(reg_rate))
         # Simple wrapper without regularization, no kwargs
         func = _wrap_func_simple(f, xdata, ydata, transform, func_kwargs)
     else:
         if offsets is None:
-            print("offsets is None, so no regularization applied")
+            print("offsets is None, so no regularization or correlations applied")
             func = _wrap_func_simple(f, xdata, ydata, transform, func_kwargs)
-        else:
+        elif correls is None:
             func = _wrap_func_regul(f, xdata, ydata, transform, reg_rate, offsets, func_kwargs)
+        else:
+            func = _wrap_func_regul_correl(f, xdata, ydata, transform,
+                                    reg_rate, offsets, correls, func_kwargs)
 
     # TODO: different wrapper for the jacobian too if there is regulation
     if callable(jac):
         jac = _wrap_jac(jac, xdata, transform, func_kwargs)
+    # But typically we don't code a jacobian function, so wrapper not necessary;
+    # computed numerically
     elif jac is None:
         jac = '2-point'
 

@@ -15,7 +15,6 @@ if sys_pf == 'darwin':
 import matplotlib.pyplot as plt
 import tkinter as tk
 import seaborn as sns
-
 from ltspcyt.scripts.adapt_dataframes import set_standard_order
 
 

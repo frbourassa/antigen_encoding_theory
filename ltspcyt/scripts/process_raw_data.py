@@ -148,7 +148,7 @@ def generate_splines(df, smoothed, rtol=1/2):#check_finite=True
     return spline_frame
 
 
-def lod_import(date):
+def lod_import(date, lod_folder="data/LOD/"):
     """ Function to import a LOD dictionary associated to the cytokine
     concentration file named cyto_file. Looks in lod_folder for a file
     containing the same experiment name than in cyto_file.
@@ -170,14 +170,17 @@ def lod_import(date):
             detection for each cytokine (keys are cytokine names).
     """
     # Look for all LOD with the right date
-    lod_file = [file for file in os.listdir("data/LOD/") if ((date in file) & file.endswith(".pkl"))]
+    try:
+        lod_file = [file for file in os.listdir(lod_folder) if ((date in file) & file.endswith(".pkl"))]
+    except FileNotFoundError:
+        lod_file = []
 
-    if lod_file==[]:
-        print("Will rescale with the minimum value of cytokines in the data, because it could not find the LOD file\n")
+    if lod_file == []:
+        print("Will rescale with the minimum value of cytokines in the data, because could not find the LOD file\n")
         return {}
 
     else:
-        lod_dict=pd.read_pickle("data/LOD/"+lod_file[0])
+        lod_dict=pd.read_pickle(os.path.join(lod_folder, lod_file[0]))
 
         # Return only the lower bounds, in nM units
         lower_bounds = {cy:a[2] for cy, a in lod_dict.items()}
@@ -320,6 +323,206 @@ def process_file(folder,file, **kwargs):
 
     # Take the log of the data if take_log, else normalize in linear scale
     data_log = log_management(data, take=take_log, rescale=rescale_max, lod=cytokine_lower_lod)
+
+    # Smooth the data points before fitting splines for interpolation
+    data_smooth = smoothing_data(data_log, kernelsize=smooth_size)
+
+    # Fit cubic splines on the smoothed series
+    spline_frame = generate_splines(data_log, data_smooth,rtol=rtol_splines)
+
+    # Extract integral, concentration and derivative features from splines at set timepoints
+    df = extract_features(spline_frame,max_time=max_time)
+
+    # Update concentration and integral
+    #TODO: speed of the code is limited by updating integrals. Optimizing this could make running time LIGHTNING FAST
+    df[df.concentration<0]=0
+    df["integral"] = update_integral_features(df.integral)
+
+    # Return data in various stages of processing
+    return [data, data_log, data_smooth, df]
+
+
+### Special functions for extra noise filtering with K-S test
+# This is not the usual processing pipeline but is sometimes necessary
+def filter_null_batch(df, refnull, choice_cyto="IFNg", split_levels=[],
+                      p_thresh=0.5, do_self=False, remove_cyto=[]):
+    """ Function to compare time series, aggregated according to levels in
+    split_levels, to a reference null peptide with a
+    Kolmogorov-Smirnov 2-way test; if the test is conclusive  (p > p_thresh),
+    that time series for that cytokine is set to zero exactly, since
+    any deviation is assumed to be pure noise.
+
+    Args:
+        df (pd.DataFrame): log-treated time series dataframe. Columns should
+            be cytokines and all other levels, including Time and Peptide,
+            should be in the row index.
+        refnull (str): label for the Peptide level which is the reference Null
+        choice_cyto (str): cytokine on which to base the decision of whether or not
+            to set cytokines in remove_cyto to zero
+        split_levels (list): level(s) according to which time courses should be split.
+            Default is none: all time courses for a peptide are aggregated.
+        p_thresh (float): p-value threshold for the K-S test; time series
+            with a larger p-value when compared to refnull will be
+            considered Null too. Default: 0.5 (we need to be pretty sure)
+        do_self (bool): if True, set the refnull peptide values to zero
+            in the filtered dataframe.
+        remove_cyto (list): which cytokines to remove if a group of time
+            series is found to be similar to refnull.
+    Returns:
+        df_filt (pd.DataFrame): dataframe of the same shape as df,
+            with cytokine time series found to be like refnull set to zero.
+        filtered_sr (list of tuples): tuples giving the index key,
+            cytokine, and p-value of the filtered out time series.
+    """
+    ## Find the index of the Peptide level
+    try:
+        pep_lvl_idx = df.index.names.index("Peptide")
+    except ValueError:
+        print("df does not have a Peptide level containing refnull in the row index; aborting filtering")
+        return df
+
+    ## Put time at the innermost index level to facilitate slicing
+    try:
+        df_filt = df.copy().stack("Time").unstack("Time")
+    except KeyError:
+        print("df does not have a Time level; aborting filtering")
+        return df
+
+    ## Prepare list of index keys over which we will slice.
+    to_drop = list(df.index.names)
+    idx_levels_kept = []
+    for lvl in ["Peptide"]+split_levels:
+        to_drop.remove(lvl)
+        idx_levels_kept.append(df.index.names.index(lvl))
+    idx_levels_kept.sort()
+    # Tuples of labels that will be sliced to be compared to refnull peptide
+    loop_index = df.index.droplevel(to_drop).unique()
+    # Key in which we will update the sliced levels labels every iteration
+    ky = np.asarray([slice(None)]*len(df.index.names))
+
+    ## Loop over time series, and for the chosen cytokine, compare against refnull
+    lod_cytos = df.stack("Time").min(axis=0)
+    if remove_cyto == []:
+        remove_cyto = df.stack("Time").columns.unique()
+    filtered_sr = []
+    for sr in loop_index:
+        # Do not self-filter unless specified otherwise
+        if refnull in sr and not do_self:
+            continue
+        # Update the labels of the levels to slice in the key ky
+        ky[idx_levels_kept] = sr
+        pep = ky[pep_lvl_idx]  # Save the current peptide, will need to put it back in ky
+        timeser = df_filt.loc[tuple(ky)].stack("Time")
+        ky[pep_lvl_idx] = refnull
+        df_null = df.loc[tuple(ky)].stack("Time")
+
+        # Check the cytokine of reference choice_cyto
+        # p-value will be high if the timeser cumulative distribution
+        # is larger at small x, i.e. timeser has smaller values than
+        # refnull,  so the alternative (small p-value) is when timeser's
+        # cdf is smaller at given x than for refnull.
+        _, pval = ks_2samp(timeser[choice_cyto].values, df_null[choice_cyto].values,
+                mode="exact", alternative="less")
+
+        # If the (aggregated) timeseries is found to be similar to refnull
+        if pval >= p_thresh:
+            ky[pep_lvl_idx] = pep
+            for cyt in remove_cyto:
+                df_filt.loc[tuple(ky), cyt] = lod_cytos[cyt]
+            filtered_sr.append((sr, pval))
+    return df_filt, filtered_sr
+
+
+def process_file_filter(folder,file, **kwargs):
+    """ Function to process the raw cytokine concentrations time series:
+    Find missing data points and linearly interpolate between them, take log, rescale and smooth with a moving average, interpolate with cubic splines, and extract features (integral, concentration & derivatives) at desired times
+    Also tries to load limits of detection
+
+    Args:
+        data_file (str): path to the raw data file (a pickled pd.DataFrame)
+
+    Keyword args:
+        take_log (bool): True to take the log of the concentrations in the
+            preprocessing, False if the networks have to deal with raw values.
+            Default: True.
+        rescale_max (bool): True: rescale concentrations by their maximum to
+            account for experimental variability, False if we postpone
+            normalization to a later stage.
+            Default: False.
+        smooth_size (int, default=3): number of points to consider when
+            performing the moving average smoothing on the data points.
+            In other words, width of the kernel.
+        rtol_splines (float): tolerance for spline fitting: specify the
+            fraction of the sum of squared residuals between the raw data
+            and the data smoothed with a moving average that will be used
+            as the total error tolerance in UnivariateSpline. Default: 1/2
+        max_time (float): last time point to sample from splines.
+        do_filter_null (bool): if True, filter (i.e. set to zero) time series
+            that have a distribution similar to the null_reference peptide,
+            as per a Kolmogorov-Smirnov test. Default: False
+        null_reference (str): label of the peptide taken as the null reference
+            for filtering. Default: "E1"
+        choice_filter_cyto (str): cytokine according to which we filter.
+            Default: None, then each single time series is compared to
+            all aggregated null_reference time series.
+        choice_remove_cyto (str): which cytokines to set to zero when a time
+            series is found to be similar to the null_reference condition
+            based on a comparison of choice_filter_cyto.
+        split_filter_levels (str): levels according to which time series
+            should be split during null peptide filtering; other levels
+            are aggregated. Default: [].
+        filter_pval (float): minimum K-S test p-value to filter a time series.
+        remove_il17 (bool): if True, set IL-17A to zero in all time series.
+        do_self_filter (bool): if True and filtering is on, null peptide
+            will also have its choice_remove_cyto set to zero. Default: False.
+
+    Returns:
+        data (pd.DataFrame): the rearranged raw data, before processing.
+        data_log (pd.DataFrame): the normalized log time series
+        data_smooth (pd.DataFrame): log data after applying a moving average
+        df (pd.DataFrame): processed data after extracting features from splines
+    """
+    # Processing-related keyword arguments
+    take_log = kwargs.get("take_log", True)
+    rescale_max = kwargs.get("rescale_max", False)
+    smooth_size = kwargs.get("smooth_size", 3)
+    rtol_splines = kwargs.get("rtol_splines", 1/2)
+    max_time = kwargs.get("max_time", 72)
+    do_filter_null = kwargs.get("do_filter_null", False)
+    null_reference = kwargs.get("null_reference", "E1")
+    filter_pval = kwargs.get("filter_pval", 0.5)
+    choice_filter_cyto = kwargs.get("choice_filter_cyto", "IFNg")
+    choice_remove_cyto = kwargs.get("choice_remove_cyto", ["IL-2"])
+    split_filter_levels = kwargs.get("split_filter_levels", [])
+    remove_il17 = kwargs.get("remove_il17", False)
+    do_self_filter = kwargs.get("do_self_filter", False)
+
+    # Import raw data
+    data = pd.read_pickle(folder+file)
+
+    # Put all timepoints for a given cytokine in continuous columns
+    data = data.stack().unstack('Cytokine')
+
+    # Check for randomly or structurally missing datapoints and interpolate between them
+    data = treat_missing_data(data)
+
+    # Import the limits of detection, if any
+    cytokine_lower_lod = lod_import(file[32:40])
+
+    # Take the log of the data if take_log, else normalize in linear scale
+    data_log = log_management(data, take=take_log, rescale=rescale_max, lod=cytokine_lower_lod)
+
+    if remove_il17:
+        data_log["IL-17A"] = 0.0
+
+    # Optional: compare against a null reference to remove other null peptides
+    if do_filter_null:
+        data_log, list_filt = filter_null_batch(data_log,
+            refnull=null_reference, choice_cyto=choice_filter_cyto,
+            p_thresh=filter_pval, split_levels=split_filter_levels,
+            remove_cyto=choice_remove_cyto, do_self=do_self_filter)
+        print("Filtered {} null-like groups of levels {}".format(len(list_filt), split_filter_levels))
+        del list_filt
 
     # Smooth the data points before fitting splines for interpolation
     data_smooth = smoothing_data(data_log, kernelsize=smooth_size)
