@@ -1,0 +1,3 @@
+[submodule "chancapmc"]
+	path = chancapmc
+	url = https://github.com/frbourassa/chancapmc.git
