@@ -9,7 +9,7 @@ theoretical parts (latent space modelling and channel capacity) of the paper
 "Universal antigen encoding of T cell activation from high dimensional cytokine data",
 submitted, 2021.
 
-All data necessary to run the code is hosted at:
+A neural network can be trained using the cytokine-pipeline user interface. Weights of the network weights used throughout the paper are provided along with all data necessary to run the code, hosted at:
 > TBD
 
 
@@ -32,17 +32,20 @@ The most important calculations are in Jupyter notebooks (Python language):
 
 - `generate_synthetic_data.ipynb`: use latent space models and reconstruction as a generative model of cytokine time series (supp. section 5). Project data fit model parameters on latent space trajectories; then, estimate the distributions of model parameters for each antigen, sample from them, and reconstruct the cytokine trajectories corresponding to the chosen parameter values, using a pre-optimized reconstruction model. Results of this notebook are used for the supplementary figure about generation of synthetic cytokine time series.
 
--`TBD`: 
+- `compute_channel_capacity_HighMI_13.ipynb`: channel capacity calculation (TODO)
+- `theoretical_antigen_classes.ipynb`: determining theoretical antigen classes from the channel capacity calculation and resulting optimal antigen distribution, plotting their latent space trajectories and model parameter space distributions, and even reconstructing the corresponding cytokine time series (TODO: need to merge the notebook `reconstruct_cytokines_chancap_antigen_prototypes.ipynb` from the `reconstruct_cytokines/` folder)
 
 Many of the calculations performed in the above notebooks rely on lower-level functions defined in sub-modules. The code is documented in-place with comments, and explained in the supplementary text of the paper. These modules are:
 - `ltspcyt`: code to process (smooth and interpolate) raw cytokine dataframes, import processed data, fit latent space models, reconstruct cytokines from latent space trajectories.
-- `chancapmc`: C code (wrapped with the Python C-API) to compute channel capacity between antigen quality and model parameters describing the corresponding latent space trajectories.
+
+-`chancapmc`: C code (wrapped with the Python C-API) to compute channel capacity between antigen quality and model parameters describing the corresponding latent space trajectories.
 
 
-Other notebooks import the results saved by the notebooks above to create figures included in the main text and supplementary information. The code for figures was kept separate from the bulk of calculations because some figures require a lot of matplotlib commands! These plotting notebooks are:
-- `TBD`:
-- `TBD`:
+Other Jupyter notebooks import the results saved by the notebooks above, and sometimes perform minor supplementary calculations, to create figures included in the main text and supplementary information. The code for figures was kept separate from the bulk of calculations because some figures require a lot of matplotlib commands! These plotting notebooks are:
+- `TBD`: main figures 1 to 4
+- `TBD`: the various supp_panels... notebooks in supp_code/
 
-More calculations for specific figures and supplementary figures are found in other Python scripts in the `more_main_scripts/` folder:
+More secondary calculations and plotting used in specific figures and supplementary figures are found in other Python scripts in the `more_main_scripts/` folder:
 - `manifold_dimension.py`: calculation of the cytokine manifold Hausdorff dimension from the correlation function scaling
 - `projection_3d_movie.py`: code to generate animated three-dimensional graphs of time courses of cytokine concentrations and time integrals.
+- `latentspace_weights_interpretation.ipynb`: output layer weights interpretation and interpolation at the EC50 values of theoretical antigen classes found from channel capacity results. Generates panels for the supplementary figure about the neural network's weights interpretation.
