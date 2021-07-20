@@ -2,3 +2,6 @@
 	path = chancapmc
 	url = https://github.com/frbourassa/chancapmc.git
 	branch = main
+[submodule "ltspcyt"]
+	path = ltspcyt
+	url = https://gitlab.com/frbourassa/ltspcyt.git
