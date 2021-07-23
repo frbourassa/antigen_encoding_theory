@@ -264,7 +264,7 @@ def capacity_from_latentspace_params_replicate(seed, df_proj, **kwargs):
     df_params_chol, df_params_chol_estim_vari = compute_cholesky_dataframe(df_params_covs, ser_npts)
 
     # Interpolate multivariate distributions as a function of log10(EC50)
-    df_ec50s_refs = pd.read_json(os.path.join("data", "potencies_df_2021.json"))
+    df_ec50s_refs = pd.read_json(os.path.join("data", "misc", "potencies_df_2021.json"))
     df_ec50s_refs.columns.name = "Reference"; df_ec50s_refs.index.name = "Peptide"
     ser_ec50s_avglog = np.log10(df_ec50s_refs).mean(axis=1)
 
