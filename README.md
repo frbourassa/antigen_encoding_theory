@@ -36,18 +36,14 @@ The most important calculations are in Jupyter notebooks (Python language):
 
 - `compute_channel_capacity_HighMI_13.ipynb`: channel capacity calculation between antigen quality and model parameters describing latent space time courses. Results of this notebook are used for main and supplementary figures related to channel capacity and theoretical antigen classes.
 
-- `theoretical_antigen_classes.ipynb`: determining theoretical antigen classes from the channel capacity calculation and resulting optimal antigen distribution, plotting their latent space trajectories and model parameter space distributions, and even reconstructing the corresponding cytokine time series.  
-
-- `reconstruct_cytokines_chancap_antigen_prototypes.ipynb`: (from the `reconstruct_cytokines/` folder)
+- `theoretical_antigen_classes_from_capacity_HighMI_13.ipynb`: determining theoretical antigen classes from the channel capacity calculation and resulting optimal antigen distribution, plotting their latent space trajectories and model parameter space distributions, and even reconstructing the corresponding cytokine time series.  Directly produces main figure 3, panels C and D (maybe we should split it eventually). 
 
 - `estimate_channel_capacity_cce.ipynb`: Estimate channel capacity of model parameter space using the  [algorithm of Grabowski et al., 2019](https://dx.doi.org/10.1098/rsif.2018.0792). To run this notebook, you first need to install the `cce` package, following the instructions given on its [Github page](https://github.com/pawel-czyz/channel-capacity-estimator).
 
-### Seconday calculations
+### Secondary calculations
 More secondary calculations and plotting used in specific figures and supplementary figures are found in other Python scripts in the `more_main_scripts/` folder:
 
-- `manifold_dimension.py`: calculation of the cytokine manifold Hausdorff dimension from the correlation function scaling
-
-- `projection_3d_movie.py`: code to generate animated three-dimensional graphs of time courses of cytokine concentrations and time integrals.
+- `manifold_dimension.py`: calculation of the cytokine manifold Hausdorff dimension from the correlation function scaling. Directly produces the supplementary figure about Hausdorff dimension
 
 - `latentspace_weights_interpretation.ipynb`: output layer weights interpretation and interpolation at the EC50 values of theoretical antigen classes found from channel capacity results. Generates panels for the supplementary figure about the neural network's weights interpretation.
 
@@ -60,10 +56,16 @@ Many of the calculations performed in the above notebooks rely on lower-level fu
 -`chancapmc`: C code (wrapped with the Python C-API) to compute channel capacity between antigen quality and model parameters describing the corresponding latent space trajectories.
 
 ### Plotting code
-Other Jupyter notebooks import the results saved by the notebooks above, and sometimes perform minor supplementary calculations, to create figures included in the main text and supplementary information. The code for figures was kept separate from the bulk of calculations because some figures require a lot of matplotlib commands. These plotting notebooks are:
-- `TBD`: main figures 1 to 4
-- `TBD`: the various supp_panels... notebooks in supp_code/
+Some of the notebooks listed above produce panels included in the main text or supplementary text, because it would have been uselessly cumbersome to save all their results to disk and re-import them in a separate plotting script:
+- `theoretical_antigen_classes_from_capacity_HighMI_13.ipynb`
+- `reconstruct_cytokines_fromLSmodel_pvalues.ipynb`
+- `more_main_scripts/manifold_dimension.py`
 
+Other Jupyter notebooks import the results saved by the notebooks above, and sometimes perform minor supplementary calculations, to create figures included in the main text and supplementary information. They are in the `main_plotting_scripts/`folder. The code for those figures was kept separate from the bulk of calculations because the results could be exported easily and some figures require a lot of matplotlib commands. These plotting notebooks are:
+- `TBD`: main figures 1 to 4
+- `TBD`: the various panels... notebooks in supp_code/
+- `peptide_channel_diagrams.py`: to produce the supplementary figure cartoon explaining the channel capacity calculation procedure.
+- `projection_3d_movie.py`: code to generate animated three-dimensional graphs of time courses of cytokine concentrations and time integrals.
 
 
 ## License information
