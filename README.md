@@ -32,8 +32,11 @@ The most important calculations are in Jupyter notebooks (Python language):
 
 - `generate_synthetic_data.ipynb`: use latent space models and reconstruction as a generative model of cytokine time series (supp. section 5). Project data fit model parameters on latent space trajectories; then, estimate the distributions of model parameters for each antigen, sample from them, and reconstruct the cytokine trajectories corresponding to the chosen parameter values, using a pre-optimized reconstruction model. Results of this notebook are used for the supplementary figure about generation of synthetic cytokine time series.
 
-- `compute_channel_capacity_HighMI_13.ipynb`: channel capacity calculation (TODO)
-- `theoretical_antigen_classes.ipynb`: determining theoretical antigen classes from the channel capacity calculation and resulting optimal antigen distribution, plotting their latent space trajectories and model parameter space distributions, and even reconstructing the corresponding cytokine time series (TODO: need to merge the notebook `reconstruct_cytokines_chancap_antigen_prototypes.ipynb` from the `reconstruct_cytokines/` folder)
+- `compute_channel_capacity_HighMI_13.ipynb`: channel capacity calculation between antigen quality and model parameters describing latent space time courses. Results of this notebook are used for main and supplementary figures related to channel capacity and theoretical antigen classes.
+
+- `theoretical_antigen_classes.ipynb`: determining theoretical antigen classes from the channel capacity calculation and resulting optimal antigen distribution, plotting their latent space trajectories and model parameter space distributions, and even reconstructing the corresponding cytokine time series.  
+
+- `reconstruct_cytokines_chancap_antigen_prototypes.ipynb`: (from the `reconstruct_cytokines/` folder)
 
 Many of the calculations performed in the above notebooks rely on lower-level functions defined in sub-modules. The code is documented in-place with comments, and explained in the supplementary text of the paper. These modules are:
 - `ltspcyt`: code to process (smooth and interpolate) raw cytokine dataframes, import processed data, fit latent space models, reconstruct cytokines from latent space trajectories.
@@ -49,3 +52,4 @@ More secondary calculations and plotting used in specific figures and supplement
 - `manifold_dimension.py`: calculation of the cytokine manifold Hausdorff dimension from the correlation function scaling
 - `projection_3d_movie.py`: code to generate animated three-dimensional graphs of time courses of cytokine concentrations and time integrals.
 - `latentspace_weights_interpretation.ipynb`: output layer weights interpretation and interpolation at the EC50 values of theoretical antigen classes found from channel capacity results. Generates panels for the supplementary figure about the neural network's weights interpretation.
+- `chancap_interpol_bootstrap.py`: script that runs multiple repeats of the channel capacity calculation, perturbing the regularization hyper-parameters used in model fitting as a way to assess the robustness of the channel capacity result against perturbations in the model parameter distributions. It uses multiprocessing for improved speed, but still takes many minutes to converge, depending on the number of repeats carried out.
