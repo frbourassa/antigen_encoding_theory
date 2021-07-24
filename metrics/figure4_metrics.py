@@ -29,7 +29,7 @@ def appropriate_dist(d1, d2, method):
     return dst
 
 def compute_distance_panel_PCA(df, pca_axes, dist_fct="EMD", ref_lbl="Null",
-    lvl="Drug", intra_lvl="Peptide", intra_pair=None):
+    lvl="Drug", intra_lvl="Peptide", intra_pair=False, add_intra=False):
     """ Returns an array of distance values and a list of labels.
     Assumes the projection gives a 1D distribution, for simplicity.
     Known distance methods dist_fct:
@@ -40,11 +40,16 @@ def compute_distance_panel_PCA(df, pca_axes, dist_fct="EMD", ref_lbl="Null",
     drugs = list(df.index.get_level_values(lvl).unique())
     data_ref = df.xs(ref_lbl, level=lvl).values.dot(pca_axes)
     drugs.remove(ref_lbl)
-    drugs.insert(0, ref_lbl)
+    # drugs.insert(0, ref_lbl)
 
     # Compare the ref. label against all others. The self-distance is zero.
-    dist_panel = np.zeros(len(drugs) + 1)
-    for i in range(1, len(drugs)):
+    total_len = len(drugs)
+    if intra_pair is not False:
+        total_len += 1
+    if add_intra:
+        total_len += len(df.xs(ref_lbl, level=lvl).index.get_level_values(intra_lvl).unique())
+    dist_panel = np.zeros(total_len)
+    for i in range(len(drugs)):
         data_i = df.xs(drugs[i], level=lvl).values.dot(pca_axes)
         dist_panel[i] = appropriate_dist(data_ref, data_i, dist_fct)
 
@@ -65,13 +70,24 @@ def compute_distance_panel_PCA(df, pca_axes, dist_fct="EMD", ref_lbl="Null",
         sort_index = np.argsort(intra_dsts)
         intra_dsts = np.asarray(intra_dsts)[sort_index]
         intra_labels = [intra_labels[i] for i in sort_index]
-        dist_panel[-1] = intra_dsts[len(intra_dsts) // 2]
+        dist_panel[len(drugs)] = intra_dsts[len(intra_dsts) // 2]
         drugs.append(intra_labels[len(intra_dsts) // 2])
-    else:
-        dist_panel[-1] = appropriate_dist(
+
+    elif intra_pair is not False:
+        dist_panel[len(drugs)] = appropriate_dist(
             data_ref.xs(intra_pair[0], level=intra_lvl).values.dot(pca_axes),
             data_ref.xs(intra_pair[1], level=intra_lvl).values.dot(pca_axes),
             dist_fct
         )
         drugs.append(" vs ".join(intra_pair))
+
+    # If required, add each single label of the intra_lvl against the whole ref. level
+    if add_intra:
+        intra_peps = data_ref.index.get_level_values(intra_lvl).unique()
+        i0 = total_len - len(intra_peps)
+        data_j = data_ref.values.dot(pca_axes)
+        for i, ipep in enumerate(intra_peps):
+            data_i = data_ref.xs(ipep, level=intra_lvl).values.dot(pca_axes)
+            dist_panel[i+i0] = appropriate_dist(data_i, data_j, dist_fct)
+            drugs.append(ipep)
     return dist_panel, drugs

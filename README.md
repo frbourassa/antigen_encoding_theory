@@ -14,7 +14,7 @@ A neural network can be trained using the cytokine-pipeline user interface. Weig
 
 
 ## Installation
-This project depends on code modules hosted as separate projects on Github and Gitlab and included as git submodules. We proceeded this way because we use thosemodules in various research projects and it was easier to update them everywhere like that. Therefore, to obtain all necessary submodules for this repository's code to run, clone the repo using the `--recurse-submodules` option of `git clone`:
+This project depends on code modules hosted as separate projects on Github and Gitlab and included as git submodules. We proceeded this way because we use those modules in various research projects and it was easier to update them everywhere like that. Therefore, to obtain all necessary submodules for this repository's code to run, clone the repo using the `--recurse-submodules` option of `git clone`:
 ```
 git clone --recurse-submodules https://github.com/frbourassa/antigen_encoding_theory.git
 ```
@@ -36,7 +36,7 @@ The most important calculations are in Jupyter notebooks (Python language):
 
 - `compute_channel_capacity_HighMI_13.ipynb`: channel capacity calculation between antigen quality and model parameters describing latent space time courses. Results of this notebook are used for main and supplementary figures related to channel capacity and theoretical antigen classes.
 
-- `theoretical_antigen_classes_from_capacity_HighMI_13.ipynb`: determining theoretical antigen classes from the channel capacity calculation and resulting optimal antigen distribution, plotting their latent space trajectories and model parameter space distributions, and even reconstructing the corresponding cytokine time series.  Directly produces main figure 3, panels C and D (maybe we should split it eventually). 
+- `theoretical_antigen_classes_from_capacity_HighMI_13.ipynb`: determining theoretical antigen classes from the channel capacity calculation and resulting optimal antigen distribution, plotting their latent space trajectories and model parameter space distributions, and even reconstructing the corresponding cytokine time series.  Directly produces main figure 3, panels C and D (maybe we should split it eventually).
 
 - `estimate_channel_capacity_cce.ipynb`: Estimate channel capacity of model parameter space using the  [algorithm of Grabowski et al., 2019](https://dx.doi.org/10.1098/rsif.2018.0792). To run this notebook, you first need to install the `cce` package, following the instructions given on its [Github page](https://github.com/pawel-czyz/channel-capacity-estimator).
 
@@ -49,11 +49,29 @@ More secondary calculations and plotting used in specific figures and supplement
 
 - `chancap_interpol_bootstrap.py`: script that runs multiple repeats of the channel capacity calculation, perturbing the regularization hyper-parameters used in model fitting as a way to assess the robustness of the channel capacity result against perturbations in the model parameter distributions. It uses multiprocessing for improved speed, but still takes many minutes to converge, depending on the number of repeats carried out.
 
+- `paramspace_distance_drugs_withPCA.py`: compute Earth Mover's distance, or another distribution distance metric, between model parameter distributions for naive and drug-perturbed conditions, for each drug among the panel tested. Distributions are projected on PCA axes before distances are computed along each PC. Similar calculations are made for main figure 4. The distance functions are defined in the `metrics/` folder.
+
+
+### Utility functions
+Some relevant calculations are defined in the scripts of the `utils/` folder. The noteworthy ones are:
+- `statistics.py`: contains statistical estimators of multivariate normal distributions. Also contains a homemade PCA implementation.
+- `distrib_interpolation.py`: functions to interpolated multivariate normal distribution parameters (means and Cholesky matrices).
+- `discrete_continuous_info.py`: our Python implementation of the bin-less MI estimator by Ross, made faster by using Scipy's cKDTree class.
+
+A few other functions are in the `metrics/` folder. There is first the Kendall tau metric for our order accuracy measure. Then, there are different metrics to compute the distance between two sample distributions. To compare drug-perturbed model parameter distributions to unperturbed ones, we used Earth Mover's distance, but other distances are made available here.
+- `count_inversions.py`: script to compute the Kendall tau order metric of a list by counting the number of inversions in it, or equivalently the number of neighbor swaps required to order it.
+
+- `figure4_metrics.py`: function to compute some distance between two distributions projected along one or multiple PCA axes.
+- `earth_mover.py`: network-based calculation of Earth Mover's distance (EMD), useful when data is more than 1D. For the 1D case, the EMD reduces to the Wasserstein distance, which is implemented in *Scipy* as `scipy.stats.wasserstein_distance`.
+- `kldiv.py`: Kullback-Leibler divergence estimator, [written by David Huard](https://mail.python.org/pipermail/scipy-user/2011-May/029521.html) and found in a [Github gist](https://gist.github.com/atabakd/ed0f7581f8510c8587bc2f41a094b518), with a slight modification by us to prevent bugs from arising when identical or excessively close samples are present.
+
+
 ### Submodules hosted separately
 Many of the calculations performed in the above notebooks rely on lower-level functions defined in sub-modules. The code is documented in-place with comments, and explained in the supplementary text of the paper. These modules are:
+
 - `ltspcyt`: code to process (smooth and interpolate) raw cytokine dataframes, import processed data, fit latent space models, reconstruct cytokines from latent space trajectories.
 
--`chancapmc`: C code (wrapped with the Python C-API) to compute channel capacity between antigen quality and model parameters describing the corresponding latent space trajectories.
+- `chancapmc`: C code (wrapped with the Python C-API) to compute channel capacity between antigen quality and model parameters describing the corresponding latent space trajectories.
 
 ### Plotting code
 Some of the notebooks listed above produce panels included in the main text or supplementary text, because it would have been uselessly cumbersome to save all their results to disk and re-import them in a separate plotting script:
@@ -66,7 +84,8 @@ Other Jupyter notebooks import the results saved by the notebooks above, and som
 - `TBD`: the various panels... notebooks in supp_code/
 - `peptide_channel_diagrams.py`: to produce the supplementary figure cartoon explaining the channel capacity calculation procedure.
 - `projection_3d_movie.py`: code to generate animated three-dimensional graphs of time courses of cytokine concentrations and time integrals.
+- `reconstruction_linear_example.py`: cartoon illustrating why the cytokine manifold can't be perfectly reconstruction with linear regression alone.
 
 
 ## License information
-This repository is licensed under GPL-3.0 because one of its scripts (`estimate_channel_capacity_cce.ipynb`) uses the `channel-capacity-estimator` package from Grabowksi et al., 2019, which is also licensed under GPL-3.0. Other dependencies are licensed under the BSD 3-clause license, which is compatible with GPL-3.0.
+This repository is licensed under GPL-3.0 because one of the scripts (`estimate_channel_capacity_cce.ipynb`) uses the `channel-capacity-estimator` package from Grabowksi et al., 2019, which is also licensed under GPL-3.0. Other dependencies are licensed under the BSD 3-clause license, which is compatible with GPL-3.0.
