@@ -217,3 +217,87 @@ def cholesky_variance(chol, n):
             vari[i, j] += running_row_sum / (n - 1)
             running_row_sum += chol[i, j]**2
     return vari
+
+
+def principal_component_analysis(samp, do_proj=False, vari_thresh=1.0, force_svd=False):
+    """ Given an array of samples, compute the empirical covariance and
+    diagonalize it to obtain the principal components and principal values,
+    which are what is returned.
+
+    If less than 10*d samples, take SVD of the sample matrix directly
+    divided by 1/sqrt(N-1), because this amounts to eigendecomposition of
+    the covariance matrix, but with better numerical stability and accuracy
+    (but it's a lot slower).
+
+    Args:
+        samp (np.array): nxp matrix for n samples of p dimensions each.
+            Pass the values of a dataframe for proper slicing.
+        do_proj (bool): if True, also project the sample points
+        vari_thresh (float in [0., 1.]): include principal components until
+            a fraction vari_thresh of the total variance is explained.
+        force_svd (bool): if True, use SVD of the data matrix directly.
+    Returns:
+        p_values (np.ndarray): 1d array of principal values, descending order.
+        p_components (np.ndarray): 2d array of principal components.
+            p_components[:, i] is the vector for p_values[i]
+        samp_proj (np.ndarray): of shape (samp.shape[0], n_comp) where n_comp
+            is the number of principal components needed to explain
+            vari_thresh of the total variance.
+    """
+    # Few samples: use SVD on the de-meaned data directly.
+    if force_svd or samp.shape[0] <= 10*samp.shape[1]:
+        means = np.mean(samp, axis=0)
+        svd_res = np.linalg.svd((samp-means).T / np.sqrt(samp.shape[0] - 1))
+        # U, Sigma, V. Better use transpose so small first dimension,
+        # because higher accuracy in eigenvectors in U
+        # Each column of U is an eigenvector of samp^T*samp/(N-1)
+        p_components = svd_res[0]
+        p_values = svd_res[1]**2  # Singular values are sqrt of eigenvalues
+
+    # Many samples are available; use covariance then eigen decomposition
+    else:
+        covmat, _ = estimate_empirical_covariance(samp, do_variance=False)
+        p_values, p_components = np.linalg.eigh(covmat)
+        # Sort in decreasing order; eigh returns increasing order
+        p_components = p_components[:, ::-1]
+        p_values = p_values[::-1]
+
+    if do_proj:
+        vari_explained = 0.
+        total_variance = np.sum(p_values)
+        n_comp = 0
+        while vari_explained < total_variance*vari_thresh:
+            vari_explained += p_values[n_comp]
+            n_comp += 1
+        samp_proj = samp.dot(p_components[:, :n_comp])
+
+    else:
+        samp_proj = None
+
+    return p_values, p_components, samp_proj
+
+# Tests
+if __name__ == "__main__":
+    rotmat = np.asarray([
+        [np.cos(0.3), np.sin(0.3), 0],
+        [-np.sin(0.3), np.cos(0.3), 0],
+        [0, 0, 1]])
+    covmat =  np.asarray([[1.0, 0, 0], [0, 0.7, 0], [0, 0, 0.4]])
+    covmat = np.dot(rotmat, covmat).dot(rotmat.T)
+    means = np.zeros(3)
+    rndgen = np.random.default_rng(seed=142348)
+    samp = rndgen.multivariate_normal(means, covmat, size=1000)
+    res1 = principal_component_analysis(samp, do_proj=True, vari_thresh=1.5/2.1)
+    print(res1[0])
+    print(res1[1])
+
+    res2 = principal_component_analysis(samp, do_proj=False, force_svd=True)
+    print(res2[0])
+    print(res2[1])
+
+    # Compare to sklearn
+    from sklearn.decomposition import PCA
+    pca_obj = PCA(n_components=1.5/2.1, svd_solver="full")
+    transformed = pca_obj.fit_transform(samp)
+    print(pca_obj.singular_values_**2 / (samp.shape[0] - 1))
+    print(pca_obj.components_.T)

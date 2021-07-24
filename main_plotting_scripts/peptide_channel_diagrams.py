@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import matplotlib as mpl
+import os
 
 import chancap.chancapmc as chancapmc
 
@@ -37,7 +38,8 @@ def cartoon_limited_peptide_distrib():
     ax.spines['top'].set_visible(False)
     ax.tick_params(axis="both", width=0.8, length=2.5)
     fig.tight_layout(h_pad=0.1, w_pad=0.1)
-    fig.savefig("figures/others/cartoon_peptides_limited_distribution.pdf",
+    fig.savefig(os.path.join("figures", "supp",
+                "cartoon_peptides_limited_distribution.pdf"),
                 transparent=True, format="pdf")
     #plt.show()
     plt.close()
@@ -87,7 +89,8 @@ def cartoon_limited_param_distrib(nz=0.06):
     ax.set_xticks([])
     ax.set_yticks([])
     fig.tight_layout()
-    fig.savefig("figures/others/cartoon_parameters_limited_distribution.pdf",
+    fig.savefig(os.path.join("figures", "supp",
+                "cartoon_parameters_limited_distribution.pdf"),
                 transparent=True, format="pdf")
     #plt.show()
     plt.close()
@@ -107,7 +110,7 @@ def cartoon_full_param_distrib(do_optimize=True, nz=0.06):
     sigmas_Ft0 = np.asarray([
                     np.asarray([[1., 0.], [0., 1.]])*nz*(1+f/8)
                 for f in means_F])
-    # Run my chancap algorithm on this ideal param distrib
+    # Run the chancap algorithm on this ideal param distrib
     # Use this for the cartoon of the full peptide distribution.
     if do_optimize:
         res = chancapmc.ba_discretein_gaussout(means_Ft0,
@@ -115,7 +118,7 @@ def cartoon_full_param_distrib(do_optimize=True, nz=0.06):
         optim_distrib = res[1]
         capacity = res[0]
         print("Capacity of cartoon example = {} bits".format(capacity))
-    else:  # Just a fictitious quartic function, to have edge effects.
+    else:  # Just a fictitious quartic function, to illustrate edge effects.
         optim_distrib = (3*peptides/npep - 1.5)**4 - 1.5*(3*peptides/npep - 1.5)**2
         optim_distrib += np.abs(np.amin(optim_distrib))*2.5
         optim_distrib /= np.sum(optim_distrib)
@@ -151,7 +154,8 @@ def cartoon_full_param_distrib(do_optimize=True, nz=0.06):
     ax.set_yticks([])
     fig.tight_layout()
     tag = "optim" if do_optimize else "no-optim"
-    fig.savefig("figures/others/cartoon_parameters_full_distribution_{}.pdf".format(tag),
+    fig.savefig(os.path.join("figures", "supp",
+                "cartoon_parameters_full_distribution_{}.pdf".format(tag)),
                 transparent=True, format="pdf")
     #plt.show()
     plt.close()
@@ -177,7 +181,8 @@ def cartoon_full_peptide_distrib(optim_probs, do_optimize=True):
     ax.tick_params(axis="both", width=0.8, length=2.5)
     fig.tight_layout()
     tag = "optim" if do_optimize else "no-optim"
-    fig.savefig("figures/others/cartoon_peptides_full_distribution_{}.pdf".format(tag),
+    fig.savefig(os.path.join("figures", "supp",
+                "cartoon_peptides_full_distribution_{}.pdf".format(tag)),
                 transparent=True, format="pdf")
     #plt.show()
     plt.close()
@@ -279,7 +284,8 @@ def cartoon_parameter_interpolation(nz=0.06):
             if i == 1:
                 axes_chl[i][j].set_xlabel(r"$\log_{10}(EC_{50})$", size=fs)
     fig.tight_layout(h_pad=0.3, w_pad=0.3)
-    fig.savefig("figures/others/cartoon_ballistic_params_distribs_interpolation.pdf",
+    fig.savefig(os.path.join("figures", "supp",
+        "cartoon_ballistic_params_distribs_interpolation.pdf"),
         transparent=True, bbox_inches="tight")
     #plt.show()
     plt.close()
