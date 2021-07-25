@@ -61,6 +61,7 @@ Some of the notebooks listed above produce panels included in the main text or s
 
 Other Jupyter notebooks import the results saved by the notebooks above, and sometimes perform minor supplementary calculations, to create figures included in the main text and supplementary information. They are in the `main_plotting_scripts/`folder. The code for those figures was kept separate from the bulk of calculations because the results could be exported easily and some figures require a lot of matplotlib commands. These plotting notebooks are:
 - `spline_process_explanation.py`: to create a supplementary figure detailing the steps of processing, smoothing and interpolation that we apply to experimental cytokine time series.
+- `plot_spline_panels.py`: plot cytokine time series and smoothing spline functions fitted on them for an entire dataset, with one panel per peptide and cytokine.
 - `model_fits_supp_panels.ipynb`: to create supplementary figures about latent space model fits. Need to run `fit_latentspace_model.ipynb` first.
 - `recon_supp_panels.ipynb`: to create supplementary figures about cytokine reconstruction and synthetic data generation. Need to run `reconstruct_cytokines_fromLSdata.ipynb` and `generate_synthetic_data.ipynb` first.
 - `reconstruction_linear_example.py`: cartoon illustrating why the cytokine manifold can't be perfectly reconstruction with linear regression alone.

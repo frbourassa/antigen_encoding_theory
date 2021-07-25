@@ -13,6 +13,7 @@ from matplotlib.colors import to_rgb
 from colorsys import rgb_to_hls
 
 
+### Utility functions
 peptide_ranks = {"N4":13, "Q4":12, "T4":11, "V4":10, "G4":9, "E1":8,
               "A2":7, "Y3":6, "A8":5, "Q7":4}
 
@@ -54,6 +55,7 @@ def read_conc(text):
         conc = 1e6
 
     return conc
+
 
 # For adding subtitles in legends.
 # Artist class: handle, containing a string
