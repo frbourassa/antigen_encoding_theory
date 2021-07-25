@@ -38,18 +38,17 @@ The most important calculations are in Jupyter notebooks (Python language):
 
 - `theoretical_antigen_classes_from_capacity_HighMI_13.ipynb`: determining theoretical antigen classes from the channel capacity calculation and resulting optimal antigen distribution, plotting their latent space trajectories and model parameter space distributions, and even reconstructing the corresponding cytokine time series.  Directly produces main figure 3, panels C and D (maybe we should split it eventually).
 
-- `estimate_channel_capacity_cce.ipynb`: Estimate channel capacity of model parameter space using the  [algorithm of Grabowski et al., 2019](https://dx.doi.org/10.1098/rsif.2018.0792). To run this notebook, you first need to install the `cce` package, following the instructions given on its [Github page](https://github.com/pawel-czyz/channel-capacity-estimator).
 
 ### Secondary calculations
 More secondary calculations and plotting used in specific figures and supplementary figures are found in other Python scripts in the `more_main_scripts/` folder:
 
 - `manifold_dimension.py`: calculation of the cytokine manifold Hausdorff dimension from the correlation function scaling. Directly produces the supplementary figure about Hausdorff dimension
 
-- `latentspace_weights_interpretation.ipynb`: output layer weights interpretation and interpolation at the EC50 values of theoretical antigen classes found from channel capacity results. Generates panels for the supplementary figure about the neural network's weights interpretation.
-
 - `chancap_interpol_bootstrap.py`: script that runs multiple repeats of the channel capacity calculation, perturbing the regularization hyper-parameters used in model fitting as a way to assess the robustness of the channel capacity result against perturbations in the model parameter distributions. It uses multiprocessing for improved speed, but still takes many minutes to converge, depending on the number of repeats carried out.
 
 - `paramspace_distance_drugs_withPCA.py`: compute Earth Mover's distance, or another distribution distance metric, between model parameter distributions for naive and drug-perturbed conditions, for each drug among the panel tested. Distributions are projected on PCA axes before distances are computed along each PC. Similar calculations are made for main figure 4. The distance functions are defined in the `metrics/` folder.
+
+- `estimate_channel_capacity_cce.ipynb`: Estimate channel capacity of model parameter space using the  [algorithm of Grabowski et al., 2019](https://dx.doi.org/10.1098/rsif.2018.0792). To run this notebook, you first need to install the `cce` package, following the instructions given on its [Github page](https://github.com/pawel-czyz/channel-capacity-estimator).
 
 
 ### Utility functions
@@ -80,8 +79,7 @@ Some of the notebooks listed above produce panels included in the main text or s
 - `more_main_scripts/manifold_dimension.py`
 
 Other Jupyter notebooks import the results saved by the notebooks above, and sometimes perform minor supplementary calculations, to create figures included in the main text and supplementary information. They are in the `main_plotting_scripts/`folder. The code for those figures was kept separate from the bulk of calculations because the results could be exported easily and some figures require a lot of matplotlib commands. These plotting notebooks are:
-- `TBD`: main figures 1 to 4
-- `TBD`: the various panels... notebooks in supp_code/
+- `latentspace_weights_interpretation.ipynb`: output layer weights interpretation and interpolation at the EC50 values of theoretical antigen classes found from channel capacity results. Generates panels for the supplementary figure about the neural network's weights interpretation.
 - `peptide_channel_diagrams.py`: to produce the supplementary figure cartoon explaining the channel capacity calculation procedure.
 - `projection_3d_movie.py`: code to generate animated three-dimensional graphs of time courses of cytokine concentrations and time integrals.
 - `reconstruction_linear_example.py`: cartoon illustrating why the cytokine manifold can't be perfectly reconstruction with linear regression alone.
