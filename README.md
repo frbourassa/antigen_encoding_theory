@@ -39,6 +39,7 @@ The most important calculations are in Jupyter notebooks (Python language):
 - `theoretical_antigen_classes_from_capacity_HighMI_13.ipynb`: determining theoretical antigen classes from the channel capacity calculation and resulting optimal antigen distribution, plotting their latent space trajectories and model parameter space distributions, and even reconstructing the corresponding cytokine time series.  Directly produces main figure 3, panels C and D (maybe we should split it eventually).
 
 
+
 ### Secondary calculations
 More secondary calculations and plotting used in specific figures and supplementary figures are found in other Python scripts in the `more_main_scripts/` folder:
 
@@ -51,18 +52,22 @@ More secondary calculations and plotting used in specific figures and supplement
 - `estimate_channel_capacity_cce.ipynb`: Estimate channel capacity of model parameter space using the  [algorithm of Grabowski et al., 2019](https://dx.doi.org/10.1098/rsif.2018.0792). To run this notebook, you first need to install the `cce` package, following the instructions given on its [Github page](https://github.com/pawel-czyz/channel-capacity-estimator).
 
 
-### Utility functions
-Some relevant calculations are defined in the scripts of the `utils/` folder. The noteworthy ones are:
-- `statistics.py`: contains statistical estimators of multivariate normal distributions. Also contains a homemade PCA implementation.
-- `distrib_interpolation.py`: functions to interpolated multivariate normal distribution parameters (means and Cholesky matrices).
-- `discrete_continuous_info.py`: our Python implementation of the bin-less MI estimator by Ross, made faster by using Scipy's cKDTree class.
 
-A few other functions are in the `metrics/` folder. There is first the Kendall tau metric for our order accuracy measure. Then, there are different metrics to compute the distance between two sample distributions. To compare drug-perturbed model parameter distributions to unperturbed ones, we used Earth Mover's distance, but other distances are made available here.
-- `count_inversions.py`: script to compute the Kendall tau order metric of a list by counting the number of inversions in it, or equivalently the number of neighbor swaps required to order it.
+### Plotting code
+Some of the notebooks listed above produce panels included in the main text or supplementary text, because it would have been uselessly cumbersome to save all their results to disk and re-import them in a separate plotting script:
+- `theoretical_antigen_classes_from_capacity_HighMI_13.ipynb`
+- `reconstruct_cytokines_fromLSmodel_pvalues.ipynb`
+- `more_main_scripts/manifold_dimension.py`
 
-- `figure4_metrics.py`: function to compute some distance between two distributions projected along one or multiple PCA axes.
-- `earth_mover.py`: network-based calculation of Earth Mover's distance (EMD), useful when data is more than 1D. For the 1D case, the EMD reduces to the Wasserstein distance, which is implemented in *Scipy* as `scipy.stats.wasserstein_distance`.
-- `kldiv.py`: Kullback-Leibler divergence estimator, [written by David Huard](https://mail.python.org/pipermail/scipy-user/2011-May/029521.html) and found in a [Github gist](https://gist.github.com/atabakd/ed0f7581f8510c8587bc2f41a094b518), with a slight modification by us to prevent bugs from arising when identical or excessively close samples are present.
+Other Jupyter notebooks import the results saved by the notebooks above, and sometimes perform minor supplementary calculations, to create figures included in the main text and supplementary information. They are in the `main_plotting_scripts/`folder. The code for those figures was kept separate from the bulk of calculations because the results could be exported easily and some figures require a lot of matplotlib commands. These plotting notebooks are:
+- `spline_process_explanation.py`: to create a supplementary figure detailing the steps of processing, smoothing and interpolation that we apply to experimental cytokine time series.
+- `model_fits_supp_panels.ipynb`: to create supplementary figures about latent space model fits. Need to run `fit_latentspace_model.ipynb` first.
+- `recon_supp_panels.ipynb`: to create supplementary figures about cytokine reconstruction and synthetic data generation. Need to run `reconstruct_cytokines_fromLSdata.ipynb` and `generate_synthetic_data.ipynb` first.
+- `reconstruction_linear_example.py`: cartoon illustrating why the cytokine manifold can't be perfectly reconstruction with linear regression alone.
+- `projection_3d_movie.py`: code to generate animated three-dimensional graphs of time courses of cytokine concentrations and time integrals.
+- `mi_results_supp_panels.ipynb`: to create supplementary figures about mutual information and channel capacity. Need to run  `compute_channel_capacity_HighMI_13.ipynb` and `more_main_scripts/estimate_channel_capacity_cce.ipynb` first.
+- `peptide_channel_diagrams.py`: to produce the supplementary figure cartoon explaining the channel capacity calculation procedure.
+- `latentspace_weights_interpretation.ipynb`: output layer weights interpretation and interpolation at the EC50 values of theoretical antigen classes found from channel capacity results. Generates panels for the supplementary figure about the neural network's weights interpretation.
 
 
 ### Submodules hosted separately
@@ -72,17 +77,24 @@ Many of the calculations performed in the above notebooks rely on lower-level fu
 
 - `chancapmc`: C code (wrapped with the Python C-API) to compute channel capacity between antigen quality and model parameters describing the corresponding latent space trajectories.
 
-### Plotting code
-Some of the notebooks listed above produce panels included in the main text or supplementary text, because it would have been uselessly cumbersome to save all their results to disk and re-import them in a separate plotting script:
-- `theoretical_antigen_classes_from_capacity_HighMI_13.ipynb`
-- `reconstruct_cytokines_fromLSmodel_pvalues.ipynb`
-- `more_main_scripts/manifold_dimension.py`
 
-Other Jupyter notebooks import the results saved by the notebooks above, and sometimes perform minor supplementary calculations, to create figures included in the main text and supplementary information. They are in the `main_plotting_scripts/`folder. The code for those figures was kept separate from the bulk of calculations because the results could be exported easily and some figures require a lot of matplotlib commands. These plotting notebooks are:
-- `latentspace_weights_interpretation.ipynb`: output layer weights interpretation and interpolation at the EC50 values of theoretical antigen classes found from channel capacity results. Generates panels for the supplementary figure about the neural network's weights interpretation.
-- `peptide_channel_diagrams.py`: to produce the supplementary figure cartoon explaining the channel capacity calculation procedure.
-- `projection_3d_movie.py`: code to generate animated three-dimensional graphs of time courses of cytokine concentrations and time integrals.
-- `reconstruction_linear_example.py`: cartoon illustrating why the cytokine manifold can't be perfectly reconstruction with linear regression alone.
+
+### Utility functions
+Some relevant calculations are defined in the scripts of the `utils/` folder. The noteworthy ones are:
+- `statistics.py`: contains statistical estimators of multivariate normal distributions. Also contains a homemade PCA implementation.
+- `distrib_interpolation.py`: functions to interpolated multivariate normal distribution parameters (means and Cholesky matrices).
+- `discrete_continuous_info.py`: our Python implementation of the bin-less MI estimator by Ross, made faster by using Scipy's cKDTree class.
+- `recon_scaling.py` : functions to scale back reconstructed cytokine trajectories to absolute cytokine concentration units.
+- Other files mostly contain functions imported by scripts or notebooks in the `main_plotting_scripts/` folder to make supplementary figures.
+
+
+A few other functions are in the `metrics/` folder. There is first the Kendall tau metric for our order accuracy measure. Then, there are different metrics to compute the distance between two sample distributions. To compare drug-perturbed model parameter distributions to unperturbed ones, we used Earth Mover's distance, but other distances are made available here.
+- `count_inversions.py`: script to compute the Kendall tau order metric of a list by counting the number of inversions in it, or equivalently the number of neighbor swaps required to order it.
+
+- `figure4_metrics.py`: function to compute some distance between two distributions projected along one or multiple PCA axes.
+- `earth_mover.py`: network-based calculation of Earth Mover's distance (EMD), useful when data is more than 1D. For the 1D case, the EMD reduces to the Wasserstein distance, which is implemented in *Scipy* as `scipy.stats.wasserstein_distance`.
+- `kldiv.py`: Kullback-Leibler divergence estimator, [written by David Huard](https://mail.python.org/pipermail/scipy-user/2011-May/029521.html) and found in a [Github gist](https://gist.github.com/atabakd/ed0f7581f8510c8587bc2f41a094b518), with a slight modification by us to prevent bugs from arising when identical or excessively close samples are present.
+
 
 
 ## License information
