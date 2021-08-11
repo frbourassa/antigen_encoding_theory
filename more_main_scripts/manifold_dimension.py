@@ -3,6 +3,11 @@ manifold. We hope to find something around 2. We use the correlation function
 method and the Takens estimator to extract a good estimate of its slope for
 small distances, while using the information available from larger distances.
 
+To run this script, you need:
+- Processed cytokine time series in the data/processed/ folder
+
+It directly produces a figure used in the supplementary materials. 
+
 @author:frbourassa
 January 30, 2020
 """
@@ -219,7 +224,7 @@ if __name__ == "__main__":
     # Determine the dimension of our cytokine manifold!
     [dim_tak, err_tak, b_tak], res, [fig, ax] = dimension_correl(df_data.values, r0=0.13)
 
-    figname = os.path.join(main_dir_path, "figures", "latentspace",
+    figname = os.path.join(main_dir_path, "figures", "supp",
                 "hausdorff_correlation_PeptideComparison20.pdf")
     fig.savefig(figname, transparent=True)
     plt.show()

@@ -97,6 +97,11 @@ A few other functions are in the `metrics/` folder. There is first the Kendall t
 - `kldiv.py`: Kullback-Leibler divergence estimator, [written by David Huard](https://mail.python.org/pipermail/scipy-user/2011-May/029521.html) and found in a [Github gist](https://gist.github.com/atabakd/ed0f7581f8510c8587bc2f41a094b518), with a slight modification by us to prevent bugs from arising when identical or excessively close samples are present.
 
 
+## Diagram of the code structure
+The following diagram represents the main dependencies between scripts in this project. Scripts are colored per theme (model fitting: orange, reconstruction: yellow, channel capacity: green, data processing: pink).  Indented scripts are those which need other scripts to be run first, as indicated by arrows on the left or right, annotated with the folders where intermediate results are stored. Scripts which produce figures included in the main or supplementary text are indicated by arrows going to the folders `figures/main/` or `figures/supp/`.
+
+![Code structure diagram](figures/code_chart_short.svg)
+
 
 ## License information
 This repository is licensed under GPL-3.0 because one of the scripts (`estimate_channel_capacity_cce.ipynb`) uses the `channel-capacity-estimator` package from Grabowksi et al., 2019, which is also licensed under GPL-3.0. Other dependencies are licensed under the BSD 3-clause license, which is compatible with GPL-3.0.

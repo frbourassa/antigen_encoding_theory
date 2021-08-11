@@ -1,6 +1,10 @@
 """ Small script to illustrate cytokine time courses (integrals) in 3D
 and show the 2D plane of the latent space (its part in the 3D subspace).
 
+To run this script, you need:
+- Trained neural network weights in data/trained-networks/
+- Processed cytokine time series in data/processed/
+
 @author:frbourassa
 June 11, 2020
 """

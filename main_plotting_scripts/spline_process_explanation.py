@@ -1,7 +1,10 @@
 # -*- coding:utf-8 -*-
 """ Short script to generate a few figures detailing the two steps of
-the data smoothing used for the cytokine integral classifier,
-at least up to August 2019.
+the data smoothing used for the cytokine integral classifier. 
+
+To run this script, you need raw cytokine time series in the data/final/ folder. 
+You can change which dataset is plotted in the __main__ block at the end of the script. 
+
 @author:frbourassa
 September 1, 2019
 """

@@ -3,9 +3,8 @@
 Script to import the raw data, smooth it lightly with a moving average,
 fit cubic splines to it, and save the cubic splines in a DataFrame.
 
-Search "TODO" to see where to enter the file name (in the main)
-and, if desired, the processing parameters (in make_spline_dataframe).
-
+To run this script, you need raw cytokine time series in the data/final/ folder. 
+You can change which dataset is plotted in the __main__ block at the end of the script. 
 
 @author:frbourassa
 August 13, 2019

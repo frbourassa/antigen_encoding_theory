@@ -13,6 +13,11 @@ shifted, like with our drugs, the EMD will be high.
 Extra part here: we first apply PCA and keep the second axis only, which
 corresponds to the direction perpendicular to the diagonal.
 
+To run this notebook, you need:
+- Processed cytokine time series in data/processed/
+- Coefficients of a trained neural network in data/trained-network/, 
+    for projection to latent space, and min-max values of training data. 
+
 @author: frbourassa, soorajachar
 March 19, 2021
 """

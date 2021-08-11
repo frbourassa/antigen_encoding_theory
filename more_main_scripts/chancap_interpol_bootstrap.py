@@ -6,6 +6,9 @@ The __main__ block does the parallel computing and saves results.
 It's easier to run multiprocessing from a script than a notebook; the latter
 causes some bugs with more recent versions of multiprocessing.
 
+To run this code, you need the same inputs as in the notebook
+compute_channel_capacity_HighMI_13.ipynb. 
+
 @author:frbourassa
 July 13, 2021
 """
@@ -48,7 +51,7 @@ def capacity_from_latentspace_params_replicate_wrapper(seed, df, **kwargs):
     stdout_backup = os.dup(1)
     stderr_backup = os.dup(2)
     sys.stdout.flush()
-    fname = os.path.join("results", "highmi13", "bootstrap",
+    fname = os.path.join("results", "capacity", "bootstrap",
                             "replicate_seed{}_terminal")
     f_out = open(fname.format(seed) + ".out", "w")
     f_err = open(fname.format(seed) + "_err.out", "w")
@@ -224,7 +227,7 @@ def capacity_from_latentspace_params_replicate(seed, df_proj, **kwargs):
     # the interpolation as a function of EC50.
     today = date.today().strftime("%d-%b-%Y").lower()
     if kwargs.get("save_inter", True):
-        df_params.to_hdf(os.path.join("results", "highmi13", "bootstrap",
+        df_params.to_hdf(os.path.join("results", "capacity", "bootstrap",
                     "df_params_highmi13_seed{}_{}.hdf".format(seed, today)),
                     key=str(seed), mode="a")
         params_correls1 = np.array([]) if params_correls1 is None else params_correls1
@@ -239,7 +242,7 @@ def capacity_from_latentspace_params_replicate(seed, df_proj, **kwargs):
             "regul_rate1": regul_rate1.tolist(),
             "regul_rate2": regul_rate2.tolist(),
         }
-        with open(os.path.join("results", "highmi13", "bootstrap",
+        with open(os.path.join("results", "capacity", "bootstrap",
                 "hyperparameters_seed{}_{}.json".format(seed, today)),
                 "w") as handle:
             json.dump(kw_dict, handle)
@@ -322,9 +325,9 @@ def capacity_from_latentspace_params_replicate(seed, df_proj, **kwargs):
                               for a in lbl.split("*"))),
         "seed": seed_ba
     }
-    folder = "highmi13"
+    folder = "capacity"
     suffix = "_HighMI_13"
-    filename = os.path.join("results", "highmi13", "bootstrap",
+    filename = os.path.join("results", "capacity", "bootstrap",
                 "replicate_log{}_seed{}_{}.json".format(suffix, seed, today))
     with open(filename, "w") as hand:
         json.dump(run_info, hand)
@@ -401,7 +404,7 @@ def main_bootstrap_channel_capacity(n_replicates, boot_frac=1.):
     times = np.arange(1, 73)
     tcellnum = "30k"
     tcn_fit = "30k"
-    folder = "highmi13"
+    folder = "capacity"
     suffix = "_HighMI"
 
     df_wt = pd.concat({"HighMI_13":df_wt}, names=["Data"])
@@ -491,14 +494,14 @@ if __name__ == "__main__":
         "run_duration (s)": main_duration
     }
     ret_dict.update(ret[2])
-    with open(os.path.join("results", "highmi13",
+    with open(os.path.join("results", "capacity",
                 "bootstrap_results_{}.json".format(today)), "w") as hand:
         json.dump(ret_dict, hand)
 
     # Combine all seed files
     full_run_dict = {}
     full_hyper_dict = {}
-    folder = os.path.join("results", "highmi13", "bootstrap")
+    folder = os.path.join("results", "capacity", "bootstrap")
     prefix = "all_bootstrap_replicates_"
     for fi in os.listdir(folder):
         seed_key = fi.split("_")[-2]
