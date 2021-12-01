@@ -7,7 +7,7 @@ It's easier to run multiprocessing from a script than a notebook; the latter
 causes some bugs with more recent versions of multiprocessing.
 
 To run this code, you need the same inputs as in the notebook
-compute_channel_capacity_HighMI_13.ipynb. 
+compute_channel_capacity_HighMI_13.ipynb.
 
 @author:frbourassa
 July 13, 2021
@@ -110,8 +110,8 @@ def capacity_from_latentspace_params_replicate(seed, df_proj, **kwargs):
 
     fit_vars={"Constant velocity":["v0", "t0", "theta", "vt"],
               "Constant force":["F", "t0", "theta", "vt"],
-              "Sigmoid":["a0", "t0", "theta", "v1", "gamma"],
-              "Sigmoid_freealpha":["a0", "t0", "theta", "v1", "alpha", "beta"]}
+              "Sigmoid":["a0", "tau0", "theta", "v1", "gamma"],
+              "Sigmoid_freealpha":["a0", "tau0", "theta", "v1", "alpha", "beta"]}
     nparameters = len(fit_vars[choice_model])
 
     # Special parameter boundaries for this dataset
@@ -132,16 +132,16 @@ def capacity_from_latentspace_params_replicate(seed, df_proj, **kwargs):
 
     # Regularization
     regul_rate_local = 0.9*np.ones(nparameters)
-    regul_rate_local[1] = 0.7  # reduce regularization on t0 because there is a gap there now
+    regul_rate_local[1] = 0.7  # reduce regularization on tau0 because there is a gap there now
     regul_rate1 = np.asarray(kwargs.get("regul_rate1", regul_rate_local))
 
     # Perturb the regularization rates
     if regul_rate1 is not None:
         regul_rate1 += 0.025*rgen.normal(size=regul_rate1.size)
 
-    # Order of sigmoid free alpha parameters: a0, t0, theta, v2, alpha, beta
+    # Order of sigmoid free alpha parameters: a0, tau0, theta, v2, alpha, beta
     params_correls_local = np.asarray([
-        [1, 0, int(1.9*10000), 0, int(0.05*10000)], # t0 = 1.9*a0
+        [1, 0, int(1.9*10000), 0, int(0.05*10000)], # tau0 = 1.9*a0
         [2, 0, int(0.75*10000), int(-np.pi/2*10000), int(0.1*10000)]  # theta = 0.75*a0 - pi/2
     ], dtype=int).T
     params_correls1 = kwargs.get("params_correls1", params_correls_local)
@@ -169,14 +169,14 @@ def capacity_from_latentspace_params_replicate(seed, df_proj, **kwargs):
     pep_selection2 = kwargs.get("pep_select2", ["V4", "G4", "E1"])
 
     regul_rate_local = 0.6*np.ones(len(fit_vars[choice_model]))
-    regul_rate_local[1] = 0.4  # t0 is too constrained, it seems
+    regul_rate_local[1] = 0.4  # tau0 is too constrained, it seems
     regul_rate2 = np.asarray(kwargs.get("regul_rate2", regul_rate_local))
     if regul_rate2 is not None:
         regul_rate2 += 0.025*rgen.normal(size=regul_rate2.size)
 
-    # Enforce a t0-a0 correlation pretty strongly
+    # Enforce a tau0-a0 correlation pretty strongly
     params_correls_local = np.asarray([
-        [1, 0, int(1.8*10000), 0, int(0.1*10000)], # t0 = 1.8*a0
+        [1, 0, int(1.8*10000), 0, int(0.1*10000)], # tau0 = 1.8*a0
         [2, 0, int(0.5*10000), int(10000*-np.pi/2), int(0.1*10000)]  # theta = 0.5*a0 - 2
     ], dtype=int).T
     params_correls2 = kwargs.get("params_correls2", params_correls_local)
@@ -208,11 +208,11 @@ def capacity_from_latentspace_params_replicate(seed, df_proj, **kwargs):
 
     ### Clean up a few outliers
     if choice_model.startswith("Constant"):
-        df_params = df_params.loc[(df_params.index.isin(["V4"], level="Peptide")*df_params["t0"]) < 1.25]
+        df_params = df_params.loc[(df_params.index.isin(["V4"], level="Peptide")*df_params["tau0"]) < 1.25]
         df_params = df_params.loc[(df_params.index.isin(["V4"], level="Peptide")*df_params["theta"]) < 0.75]
-        df_params = df_params.loc[(df_params.index.isin(["G4"], level="Peptide")*df_params["t0"]) < 0.75]
-        df_params = df_params.loc[(df_params.index.isin(["E1"], level="Peptide")*df_params["t0"]) < 0.75]
-        df_params = df_params.loc[(df_params.index.isin(["T4"], level="Peptide")*df_params["t0"]) < 1.25]
+        df_params = df_params.loc[(df_params.index.isin(["G4"], level="Peptide")*df_params["tau0"]) < 0.75]
+        df_params = df_params.loc[(df_params.index.isin(["E1"], level="Peptide")*df_params["tau0"]) < 0.75]
+        df_params = df_params.loc[(df_params.index.isin(["T4"], level="Peptide")*df_params["tau0"]) < 1.25]
         df_params = df_params.loc[(df_params.index.isin(["E1"], level="Peptide")*df_params["theta"]) < 0.5]
         df_params = df_params.loc[(df_params.index.isin(["G4"], level="Peptide")*df_params["theta"]) < 0.5]
     else:
@@ -452,7 +452,7 @@ def main_bootstrap_channel_capacity(n_replicates, boot_frac=1.):
     # Get all the return values, they are ordered by seed
     list_returns = [p.get() for p in list_return_objects]
     pool.close()
-    
+
     # Compute the average capacity and the average distribution
     all_capacities = np.asarray([a["capacity_bits"] for a in list_returns])
     all_distributions = np.asarray([a["optim_input_distrib"] for a in list_returns])

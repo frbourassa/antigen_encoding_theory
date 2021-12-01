@@ -367,7 +367,7 @@ def pairplot_scalerkdes(kde_dict, hue_order, vari_to_plot, do_leg=True,
 
     # Map for nicer label formatting
     nice_param_names = {"a0":"a_0", "theta":r"\theta", "v1":"v_{t1}", "t0":"t_0",
-                        "alpha":r"\alpha", "beta":r"\beta"}
+                        "alpha":r"\alpha", "beta":r"\beta", "tau0":r"\tau_0"}
 
     # Prepare the plot's axes, lower triangular layout
     # Use the upper triangular part for the legend

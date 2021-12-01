@@ -83,7 +83,7 @@ def cartoon_limited_param_distrib(nz=0.06):
             mfc=colors[3-i], mec="k", mew=0.8, alpha=0.8)
 
     ax.set_xlabel(r"$a_0$")
-    ax.set_ylabel(r"$t_0$")
+    ax.set_ylabel(r"$\tau_0$")
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.set_xticks([])
@@ -147,7 +147,7 @@ def cartoon_full_param_distrib(do_optimize=True, nz=0.06):
             mfc=colors[npep-i-1], mec="k", mew=0.8)
 
     ax.set_xlabel(r"$a_0$")
-    ax.set_ylabel(r"$t_0$")
+    ax.set_ylabel(r"$\tau_0$")
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.set_xticks([])
@@ -247,13 +247,13 @@ def cartoon_parameter_interpolation(nz=0.06):
     ax_mt.set_xticks([])
     ax_mt.set_yticks([])
     ax_mt.set_xlabel(r"$\log_{10}(EC_{50})$", size=fs)
-    ax_mt.set_ylabel(r"$t_0$", size=fs)
+    ax_mt.set_ylabel(r"$\tau_0$", size=fs)
 
     # Cholesky elements: add some noise to the data points
     ecaxis_chl_mats = chlmats_interp(ec50_axis)
     peps_chl_mats = chlmats_interp(ec50_peps)
     allpeps_chl_mats = chlmats_interp(ec50_interp_peps)
-    params_lbls = [r"$a_0$", r"$t_0$"]
+    params_lbls = [r"$a_0$", r"$\tau_0$"]
     rndgen = np.random.default_rng(seed=121398)
     noise_mgn = 0.005
     for i in range(2):
