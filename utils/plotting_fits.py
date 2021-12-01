@@ -328,9 +328,9 @@ def timecourse_smallplots(df_feature, feat_name="N", maxwidth=2., do_leg=True, *
     else:
         leg = None
         axleg = None
-    ax2.set_xlabel("Time [h]", size=8)
-    ax1.set_ylabel(r"${}_1(t)$ [-]".format(feat_name), size=8)
-    ax2.set_ylabel(r"${}_2(t)$ [-]".format(feat_name), size=8)
+    ax2.set_xlabel("Time (h)", size=8)
+    ax1.set_ylabel(r"${}_1(t)$ (a.u.)".format(feat_name), size=8)
+    ax2.set_ylabel(r"${}_2(t)$ (a.u.)".format(feat_name), size=8)
     ax1.tick_params(which="both", length=1.5, width=0.5, labelsize=6.)
     ax2.tick_params(which="both", length=1.5, width=0.5, labelsize=6.)
     return [fig, [ax1, ax2, axleg, leg]]
@@ -392,8 +392,8 @@ def latentspace_smallplot(df_feature, feat_name="N", maxwidth=2., do_leg=True, *
     else:
         leg = None
         axleg = None
-    ax1.set_xlabel(r"${}_1(t)$ [-]".format(feat_name), size=8)
-    ax1.set_ylabel(r"${}_2(t)$ [-]".format(feat_name), size=8)
+    ax1.set_xlabel(r"${}_1(t)$ (a.u.)".format(feat_name), size=8)
+    ax1.set_ylabel(r"${}_2(t)$ (a.u.)".format(feat_name), size=8)
     ax1.tick_params(which="both", length=1.5, width=0.5, labelsize=6.)
     return [fig, [ax1, axleg, leg]]
 
