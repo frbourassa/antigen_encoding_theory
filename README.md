@@ -104,4 +104,4 @@ The following diagram represents the main dependencies between scripts in this p
 
 
 ## License information
-This repository is licensed under GPL-3.0 because one of the scripts (`estimate_channel_capacity_cce.ipynb`) uses the `channel-capacity-estimator` package from Grabowksi et al., 2019, which is also licensed under GPL-3.0. Other dependencies are licensed under the BSD 3-clause license, which is compatible with GPL-3.0.
+This repository is licensed under the GNU GPLv3.0 because one of the scripts (`estimate_channel_capacity_cce.ipynb`) uses the `channel-capacity-estimator` package from Grabowksi et al., 2019, which is also licensed under GPLv3.0. Other dependencies are licensed under the BSD 3-clause license, which is compatible with GPLv3.0.
