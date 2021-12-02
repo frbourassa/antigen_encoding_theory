@@ -32,7 +32,8 @@ from psutil import cpu_count
 
 # Can execute from any folder and it still works with this path modification
 main_dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, main_dir_path)
+if main_dir_path not in sys.path:
+    sys.path.insert(0, main_dir_path)
 
 from ltspcyt.scripts.process_raw_data import process_file, process_file_filter
 from ltspcyt.scripts.sigmoid_ballistic import return_param_and_fitted_latentspace_dfs, compute_v2_v1

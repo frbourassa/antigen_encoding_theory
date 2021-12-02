@@ -21,7 +21,8 @@ from matplotlib.ticker import LogFormatterSciNotation
 # Can execute from any folder and it still works with this path modification
 import os, sys
 main_dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, main_dir_path)
+if main_dir_path not in sys.path:
+    sys.path.insert(0, main_dir_path)
 
 from ltspcyt.scripts.neural_network import import_WT_output
 
