@@ -173,7 +173,7 @@ def main_movie_one_plane():
     feat = "integral"
     anim = movie_cytokines_one_latent_plane(df_data, proj.T, chosen_cytokines, feat=feat)
 
-    filename = os.path.join(main_dir_path, "figures", "latentspace",
+    filename = os.path.join(main_dir_path, "figures", "latentspaces",
                     "3d_movie_{}_PeptideComparison19_{}.mp4".format(
                     "+".join(chosen_cytokines), feat))
     anim.save(filename, dpi=150)
@@ -271,7 +271,7 @@ def main_effect_dataset_Tcellnum():
         # Produce the plot
         fig, ax = cytokines_dataset_tcellnum_planes(df_data, proj.T, chosen_cytokines)
 
-        filename = os.path.join(main_dir_path, "figures", "latentspace",
+        filename = os.path.join(main_dir_path, "figures", "latentspaces",
             "3d_projection_{}_dataset2_tcellnum_effect.pdf".format(
             "+".join(chosen_cytokines)))
         fig.savefig(filename, transparent=True)
