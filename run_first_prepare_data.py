@@ -21,6 +21,9 @@ from ltspcyt.scripts.adapt_dataframes import main_adapt
 from ltspcyt.scripts.process_raw_data import process_file
 
 if __name__ == "__main__":
+    # Set to False if there are only a few new datasets to process
+    # True by default: all dataframes are processed and written.
+    overwrite = True
     # Adapt dataframes in data/initial/
     initial_folder = os.path.join("data", "initial/")
 
@@ -43,11 +46,16 @@ if __name__ == "__main__":
     final_folder = os.path.join("data", "final/")
     for f in os.listdir(final_folder):
         if f.endswith(".hdf") or f.endswith(".h5"):
-            res = process_file(final_folder, f, **process_kwargs)
-            [data, data_log, data_smooth, df_features] = res
             # Extract the short file name from the full name, for saving
             # Usual format is cyto...-date-filename-final.hdf
-            filename = os.path.join("data", "processed", f.split("-")[2] + ".hdf")
-            # Save processed file
-            df_features.to_hdf(filename, key="df")
+            # Maybe there are -- in the filename, e.g. HighMI_1-i,
+            # so allow a range and join if necessary
+            nicename = "-".join(f.split("-")[2:-1])
+            filename = os.path.join("data", "processed", nicename + ".hdf")
+            # Check if it already exists, skip processing if overwrite==False
+            if not os.path.isfile(filename) or overwrite:
+                res = process_file(final_folder, f, **process_kwargs)
+                [data, data_log, data_smooth, df_features] = res
+                # Save processed file
+                df_features.to_hdf(filename, key="df")
     print("Done!")
