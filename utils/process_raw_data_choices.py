@@ -199,21 +199,22 @@ def lod_import(date, path=""):
     Sooraj performs dilutions.
 
     Args:
-        cyto_file (str): the name of the cytokine data file.
+        date (str): the date in the cytokine data file.
+        path (str): path to the LOD/ folder. 
 
     Returns:
         lower_bounds (dict): the dictionary containing the lower limit of
             detection for each cytokine (keys are cytokine names).
     """
     # Look for all LOD with the right date
-    lod_file = [file for file in os.listdir(path+"data/LOD/") if ((date in file) & file.endswith(".pkl"))]
+    lod_file = [file for file in os.listdir(os.path.join(path, "LOD")) if ((date in file) & file.endswith(".pkl"))]
 
     if lod_file==[]:
-        print("Will rescale with the minimum value of cytokines in the data, because it could not find the LOD file\n")
+        print("Determining LOD from the data limits for file {}".format(date))
         return {}
 
     else:
-        lod_dict=pd.read_pickle(path+"data/LOD/"+lod_file[0])
+        lod_dict=pd.read_pickle(os.path.join(path, "LOD", lod_file[0]))
 
         # Return only the lower bounds, in nM units
         lower_bounds = {cy:a[2] for cy, a in lod_dict.items()}
@@ -389,7 +390,7 @@ def process_file_choices(folder, file, **kwargs):
 
     ## Common processing steps
     # Import raw data
-    data = pd.read_pickle(folder+file)
+    data = pd.read_pickle(os.path.join(folder, file))
     # data = select_naive_data(data)
     # Original pipeline only selects data after processing
 
@@ -400,7 +401,9 @@ def process_file_choices(folder, file, **kwargs):
     data = treat_missing_data(data)
 
     # Import the limits of detection, if any
-    cytokine_lower_lod = lod_import(file[32:40])
+    # folder name contains at least data/subdatafolder/
+    path_to_lodfolder = os.path.join(*os.path.split(folder)[:-1]) 
+    cytokine_lower_lod = lod_import(file[32:40], path=path_to_lodfolder)
 
     ## Log or no log, rescale or just shift baseline to zero
     # Take the log of the data if take_log, else normalize in linear scale

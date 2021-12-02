@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import cross_validate
-from utils.process_raw_data import process_file_choices, select_naive_data
+from utils.process_raw_data_choices import process_file_choices, select_naive_data
 
 # Slicing utility
 def slice_level(df, special_slice, target_lvl="Time", axis=0):
