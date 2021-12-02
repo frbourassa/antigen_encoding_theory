@@ -10,3 +10,5 @@
 *.mp4
 *.m4a
 *.json
+*.bak
+data_old/
