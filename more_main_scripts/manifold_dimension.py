@@ -210,7 +210,7 @@ if __name__ == "__main__":
     # Import data
     cytokines = ["IFNg", "IL-2", "IL-17A", "IL-6", "TNFa"]
     df_data = pd.read_hdf(os.path.join(main_dir_path, "data", "processed",
-                "PeptideComparison_OT1_Timeseries_20.hdf"))
+                "PeptideComparison_4.hdf"))
     # Slice the desired values only
     df_data = df_data.loc["100k"]
     df_data = df_data.xs("integral", level="Feature", axis=1)
@@ -226,7 +226,7 @@ if __name__ == "__main__":
     [dim_tak, err_tak, b_tak], res, [fig, ax] = dimension_correl(df_data.values, r0=0.13)
 
     figname = os.path.join(main_dir_path, "figures", "supp",
-                "hausdorff_correlation_PeptideComparison20.pdf")
+                "hausdorff_correlation_PeptideComparison4.pdf")
     fig.savefig(figname, transparent=True)
     plt.show()
     plt.close()

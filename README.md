@@ -34,9 +34,9 @@ The most important calculations are in Jupyter notebooks (Python language):
 
 - `generate_synthetic_data.ipynb`: use latent space models and reconstruction as a generative model of cytokine time series (supp. section 5). Project data fit model parameters on latent space trajectories; then, estimate the distributions of model parameters for each antigen, sample from them, and reconstruct the cytokine trajectories corresponding to the chosen parameter values, using a pre-optimized reconstruction model. Results of this notebook are used for the supplementary figure about generation of synthetic cytokine time series.
 
-- `compute_channel_capacity_HighMI_13.ipynb`: channel capacity calculation between antigen quality and model parameters describing latent space time courses. Results of this notebook are used for main and supplementary figures related to channel capacity and theoretical antigen classes.
+- `compute_channel_capacity_HighMI_3.ipynb`: channel capacity calculation between antigen quality and model parameters describing latent space time courses. Results of this notebook are used for main and supplementary figures related to channel capacity and theoretical antigen classes.
 
-- `theoretical_antigen_classes_from_capacity_HighMI_13.ipynb`: determining theoretical antigen classes from the channel capacity calculation and resulting optimal antigen distribution, plotting their latent space trajectories and model parameter space distributions, and even reconstructing the corresponding cytokine time series.  Directly produces main figure 3, panels C and D (maybe we should split it eventually).
+- `theoretical_antigen_classes_from_capacity_HighMI_3.ipynb`: determining theoretical antigen classes from the channel capacity calculation and resulting optimal antigen distribution, plotting their latent space trajectories and model parameter space distributions, and even reconstructing the corresponding cytokine time series.  Directly produces main figure 3, panels C and D (maybe we should split it eventually).
 
 
 
@@ -55,7 +55,7 @@ More secondary calculations and plotting used in specific figures and supplement
 
 ### Plotting code
 Some of the notebooks listed above produce panels included in the main text or supplementary text, because it would have been uselessly cumbersome to save all their results to disk and re-import them in a separate plotting script:
-- `theoretical_antigen_classes_from_capacity_HighMI_13.ipynb`
+- `theoretical_antigen_classes_from_capacity_HighMI_3.ipynb`
 - `reconstruct_cytokines_fromLSmodel_pvalues.ipynb`
 - `more_main_scripts/manifold_dimension.py`
 
@@ -66,7 +66,7 @@ Other Jupyter notebooks import the results saved by the notebooks above, and som
 - `recon_supp_panels.ipynb`: to create supplementary figures about cytokine reconstruction and synthetic data generation. Need to run `reconstruct_cytokines_fromLSdata.ipynb` and `generate_synthetic_data.ipynb` first.
 - `reconstruction_linear_example.py`: cartoon illustrating why the cytokine manifold can't be perfectly reconstruction with linear regression alone.
 - `projection_3d_movie.py`: code to generate animated three-dimensional graphs of time courses of cytokine concentrations and time integrals.
-- `mi_results_supp_panels.ipynb`: to create supplementary figures about mutual information and channel capacity. Need to run  `compute_channel_capacity_HighMI_13.ipynb` and `more_main_scripts/estimate_channel_capacity_cce.ipynb` first.
+- `mi_results_supp_panels.ipynb`: to create supplementary figures about mutual information and channel capacity. Need to run  `compute_channel_capacity_HighMI_3.ipynb` and `more_main_scripts/estimate_channel_capacity_cce.ipynb` first.
 - `peptide_channel_diagrams.py`: to produce the supplementary figure cartoon explaining the channel capacity calculation procedure.
 - `latentspace_weights_interpretation.ipynb`: output layer weights interpretation and interpolation at the EC50 values of theoretical antigen classes found from channel capacity results. Generates panels for the supplementary figure about the neural network's weights interpretation.
 

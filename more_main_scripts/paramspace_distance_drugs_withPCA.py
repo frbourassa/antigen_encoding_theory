@@ -71,8 +71,9 @@ def fit_params_drugs(data_folder=os.path.join("data", "processed"),
     df_mut = import_mutant_output(mutant="Drug", folder=data_folder)
 
     # Normalize data, project to latent space
-    df_min, df_max = pd.read_pickle(os.path.join("data",
-        "trained-networks", "min_max-thomasRecommendedTraining.pkl"))
+    minmaxfile = os.path.join(main_dir_path, "data", "trained-networks", "min_max-thomasRecommendedTraining.hdf")
+    df_min = pd.read_hdf(minmaxfile, key="df_min")
+    df_max = pd.read_hdf(minmaxfile, key="df_max")
     projmat = np.load(os.path.join("data",
         "trained-networks", "mlp_input_weights-thomasRecommendedTraining.npy"))
     cytokines = df_min.index.get_level_values("Cytokine")

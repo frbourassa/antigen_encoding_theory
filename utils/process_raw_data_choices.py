@@ -184,40 +184,46 @@ def generate_splines(df, smoothed, rtol=1/2):#check_finite=True
     return spline_frame
 
 
-def lod_import(date, path=""):
+def lod_import(date, lod_folder=os.path.join("data", "LOD")):
     """ Function to import a LOD dictionary associated to the cytokine
     concentration file named cyto_file. Looks in lod_folder for a file
     containing the same experiment name than in cyto_file.
 
-    LOD dictionary structure (Sooraj):  Each pickle file is a dictionary that
-    has 7 keys, one for each cytokine, each pointing to a list with 4 numbers.
-        Number 1: Minimum Limit of Detection in GFI for cytokine
-        Number 2: Maximum Limit of Detection in GFI for cytokine
-        Number 3: Minimum Limit of Detection in Concentration for cytokine
-        Number 4: Maximum Limit of Detection in Concentration for cytokine
-    We are particularly interested in number 3. Numbers 1-2 can change if
-    Sooraj performs dilutions.
+    LOD dictionary structure (Sooraj):  Each JSON file is a DataFrame that
+    has 4 columns -- two for MFI and two for corresponding concentrations,
+    min and max -- and 7 rows -- one for each cytokine.
+    We are interested in the column ('Concentration', 'Lower').
 
     Args:
-        date (str): the date in the cytokine data file.
-        path (str): path to the LOD/ folder. 
-
+        date (str): the date of the cytokine experiment, format yyyymmdd
+        lod_folder (str): path of the LOD folder, inclusively
     Returns:
         lower_bounds (dict): the dictionary containing the lower limit of
             detection for each cytokine (keys are cytokine names).
     """
     # Look for all LOD with the right date
-    lod_file = [file for file in os.listdir(os.path.join(path, "LOD")) if ((date in file) & file.endswith(".pkl"))]
+    try:
+        lod_file = [file for file in os.listdir(lod_folder)
+                if ((date in file) & file.endswith(".json"))]
+    except FileNotFoundError:
+        lod_file = []
 
-    if lod_file==[]:
-        print("Determining LOD from the data limits for file {}".format(date))
+    if lod_file == []:
+        print("Determined LOD for experiment {} ".format(date))
         return {}
 
     else:
-        lod_dict=pd.read_pickle(os.path.join(path, "LOD", lod_file[0]))
+        try:
+            with open(os.path.join(lod_folder, lod_file[0]), "r") as handle:
+                lod_df = pd.read_json(handle, orient="columns")
+                print("Determined LOD for experiment {}".format(date))
+        except:
+            print("Error while parsing LOD file {}; ".format(lod_file[0])
+                    + "will use the minimum value of each cytokine instead.")
+            return {}
 
         # Return only the lower bounds, in nM units
-        lower_bounds = {cy:a[2] for cy, a in lod_dict.items()}
+        lower_bounds = lod_df["('Concentration', 'Lower')"].to_dict()
         return lower_bounds
 
 
@@ -346,6 +352,19 @@ def extract_empirical_feature(df_data, feature, max_time=72):
         df_int = pd.concat({feature:df_int}, names=["Feature"], axis=1)
         return df_int
 
+
+def find_date_in_name(f):
+    potentials = [a for a in f.split("-") if a.isnumeric() and len(a) == 8]
+    if len(potentials) > 1:
+        date = f.split("-")[1]  # Hardcoded
+    elif len(potentials) == 1:
+        date = potentials[0]
+    elif len(potentials) == 0:
+        print("Could not find date in {}, returning 20000101".format(f))
+        date = "20000101"
+    return date
+
+
 def process_file_choices(folder, file, **kwargs):
     """ Function to process the raw cytokine concentrations time series:
     Find missing data points and linearly interpolate between them, take log,
@@ -354,7 +373,7 @@ def process_file_choices(folder, file, **kwargs):
     Also tries to load limits of detection
 
     Args:
-        data_file (str): path to the raw data file (a pickled pd.DataFrame)
+        data_file (str): path to the raw data file (a HDF5 pd.DataFrame)
 
     Keyword args:
         take_log (bool): True to take the log of the concentrations in the
@@ -390,7 +409,7 @@ def process_file_choices(folder, file, **kwargs):
 
     ## Common processing steps
     # Import raw data
-    data = pd.read_pickle(os.path.join(folder, file))
+    data = pd.read_hdf(os.path.join(folder, file))
     # data = select_naive_data(data)
     # Original pipeline only selects data after processing
 
@@ -401,13 +420,15 @@ def process_file_choices(folder, file, **kwargs):
     data = treat_missing_data(data)
 
     # Import the limits of detection, if any
-    # folder name contains at least data/subdatafolder/
-    path_to_lodfolder = os.path.join(*os.path.split(folder)[:-1]) 
-    cytokine_lower_lod = lod_import(file[32:40], path=path_to_lodfolder)
+    # Get the path to the data/ folder.
+    path_parts = os.path.normpath(folder).split(os.path.sep)[:-1]
+    path_to_lod = os.path.join(*path_parts, "LOD")
+    data_date = find_date_in_name(file)  # Date of the experiment.
+    cytokine_lower_lod = lod_import(data_date, lod_folder=path_to_lod)
 
     ## Log or no log, rescale or just shift baseline to zero
     # Take the log of the data if take_log, else normalize in linear scale
-    data_log = log_management(data, take=take_log, rescale=rescale_max, 
+    data_log = log_management(data, take=take_log, rescale=rescale_max,
                               remove=subtract_min, lod=cytokine_lower_lod)
 
     ## Smoothing and interpolation, or not

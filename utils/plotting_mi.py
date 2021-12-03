@@ -10,7 +10,7 @@ def plot_params_vs_logec50(df_estim, df_estim_vari, ser_x, cols_plot=None,
     """ Optional df_interp, which contains interpolating splines for each
     parameter as a function of the x variable (log EC50, usually).
 
-    Code taken from mi_param_space/HighMI_5_channel_capacity.ipynb and improved
+    Code taken from mi_param_space/HighMI_3_channel_capacity.ipynb and improved
     for publication-quality figures, width 4.75 inches (Science).
     """
     if cols_plot is None:
