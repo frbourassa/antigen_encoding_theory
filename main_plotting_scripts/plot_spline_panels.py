@@ -3,8 +3,8 @@
 Script to import the raw data, smooth it lightly with a moving average,
 fit cubic splines to it, and save the cubic splines in a DataFrame.
 
-To run this script, you need raw cytokine time series in the data/final/ folder. 
-You can change which dataset is plotted in the __main__ block at the end of the script. 
+To run this script, you need raw cytokine time series in the data/final/ folder.
+You can change which dataset is plotted in the __main__ block at the end of the script.
 
 @author:frbourassa
 August 13, 2019
@@ -22,9 +22,12 @@ import seaborn as sns
 
 import os, sys
 main_dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, main_dir_path)
+if main_dir_path not in sys.path:
+    sys.path.insert(0, main_dir_path)
 
 # To extract information from dataframes with variable formats.
+# Slightly different process_file (legacy version) that returns spline objects
+# and dataframes shaped differently from usual version
 from utils.plotting_splines import (nicer_name, index_split,
                                 find_peptide_concentration_names, process_file)
 # To add subtitles in legends
@@ -52,14 +55,13 @@ plt.rcParams['axes.linewidth'] = 0.6
 plt.rcParams['savefig.transparent'] = True
 
 
-def make_spline_dataframe(filename, do_save=False):
+def make_spline_dataframe(filename):
     """ Import the pickled cytokine data located at filename and
     return and save (in the output/splines folder) a DataFrame containing the
     sp.interpolate.UnivariateSpline objects.
 
     Args:
         filename (str): path and file name, including extension.
-        do_save (bool): if True, the spline dataframe is pickled.
 
     Returns:
         spline_frame (pd.DataFrame): a DataFrame with the conditions (Peptide,
@@ -101,14 +103,6 @@ def make_spline_dataframe(filename, do_save=False):
     data = data.loc[:, good_cytokines]
     data_log = data_log.loc[:, good_cytokines]
     data_smooth = data_smooth.loc[:, good_cytokines]
-
-    # Save the splines to the output/splines/ folder
-    if do_save:
-        prefix = os.path.join("data", "splines", "spline_dataframe_")
-        exp_name = nicer_name(filename)
-        frame_file_name = prefix + exp_name + ".pkl"
-        with open(frame_file_name, "wb") as handle:
-            pickle.dump(spline_frame, handle)
 
     return spline_frame, data, data_log, data_smooth
 
@@ -286,7 +280,7 @@ def plot_splines_vs_data(df_spline, df_log, df_smooth, pep_conc_names,
             if i == len(df_spline.columns) - 1:
                 ax.set_xticks([0, 20, 40, 60])
                 ax.set_xticklabels([0, 20, 40, 60])
-                ax.set_xlabel("Time [h]")
+                ax.set_xlabel("Time (h)")
             elif i == 0:
                 ax.set_title(pep, size=8)
             if j == 0:
@@ -443,6 +437,6 @@ def main_one_set_from_scratch(file_path):
 
 if __name__ == "__main__":
     # Choose the file to process
-    filepath = os.path.join("data", "final", "cytokineConcentrationPickleFile"
-        +"-20190608-PeptideComparison_OT1_Timeseries_19-final.pkl")
+    filepath = os.path.join(main_dir_path, "data", "final", "cytokineConcentrationPickleFile"
+        +"-20190608-PeptideComparison_3-final.hdf")
     main_one_set_from_scratch(filepath)

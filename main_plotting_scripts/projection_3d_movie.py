@@ -19,7 +19,8 @@ import seaborn as sns
 # Can execute from any folder and it still works with this path modification
 import os, sys
 main_dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, main_dir_path)
+if main_dir_path not in sys.path:
+    sys.path.insert(0, main_dir_path)
 
 from ltspcyt.scripts.neural_network import import_WT_output
 
@@ -162,11 +163,11 @@ def main_movie_one_plane():
     # Import data
     df_data = import_WT_output(folder=os.path.join(main_dir_path, "data", "processed/"))
     # Slice the desired values only
-    df_data = df_data.loc[("PeptideComparison_OT1_Timeseries_19", "100k")]
+    df_data = df_data.loc[("PeptideComparison_3", "100k")]
 
     # Import projection matrix
     proj = np.load(os.path.join(main_dir_path, "data", "trained-networks",
-                "mlp_coefs-thomasRecommendedTraining.npy"))
+                "mlp_input_weights-thomasRecommendedTraining.npy"))
     # Select cytokines
     chosen_cytokines = ["TNFa", "IL-2", "IL-17A"]  # ["IFNg", "IL-2", "TNFa"]
     # Produce the plot
@@ -174,7 +175,7 @@ def main_movie_one_plane():
     anim = movie_cytokines_one_latent_plane(df_data, proj.T, chosen_cytokines, feat=feat)
 
     filename = os.path.join(main_dir_path, "figures", "latentspaces",
-                    "3d_movie_{}_PeptideComparison19_{}.mp4".format(
+                    "3d_movie_{}_PeptideComparison3_{}.mp4".format(
                     "+".join(chosen_cytokines), feat))
     anim.save(filename, dpi=150)
 
@@ -259,19 +260,18 @@ def main_effect_dataset_Tcellnum():
         # Import data
         df_data = import_WT_output(folder=os.path.join(main_dir_path, "data", "processed/"))
         # Slice the desired values only
-        #exp_selection = ["TCellNumber_OT1_Timeseries_7", "TCellNumber_1", "Activation_TCellNumber_1"]
-        exp_selection = ["TCellNumber_OT1_Timeseries_7", "Activation_TCellNumber_1"]
+        exp_selection = ["TCellNumber_1", "TCellNumber_3"]
         df_data = df_data.loc[exp_selection]
 
         # Import projection matrix
         proj = np.load(os.path.join(main_dir_path, "data", "trained-networks",
-            "mlp_coefs-thomasRecommendedTraining.npy"))
+            "mlp_input_weights-thomasRecommendedTraining.npy"))
         # Select cytokines
         chosen_cytokines = ["IFNg", "IL-2", "TNFa"]  #["TNFa", "IL-2", "IL-17A"]
         # Produce the plot
         fig, ax = cytokines_dataset_tcellnum_planes(df_data, proj.T, chosen_cytokines)
 
-        filename = os.path.join(main_dir_path, "figures", "latentspaces",
+        filename = os.path.join(main_dir_path, "figures", "supp",
             "3d_projection_{}_dataset2_tcellnum_effect.pdf".format(
             "+".join(chosen_cytokines)))
         fig.savefig(filename, transparent=True)

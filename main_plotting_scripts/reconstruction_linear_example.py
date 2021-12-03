@@ -113,8 +113,8 @@ def plot_recon_vs_data(origpts, reconpts, projpts, npts):
     #axin.patch.set_alpha(0.2)
     axin.set_xticks([])
     axin.set_yticks([])
-    axin.set_xlabel(r"$N_1$", size=8)
-    axin.set_ylabel(r"$N_2$", size=8)
+    axin.set_xlabel(r"$LS_1$", size=8)
+    axin.set_ylabel(r"$LS_2$", size=8)
     axin.set_title("Projection used \nto reconstruct", size=9)
 
     leg = ax.legend(framealpha=grey_background[-1], loc='upper right')

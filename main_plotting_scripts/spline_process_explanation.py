@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
 """ Short script to generate a few figures detailing the two steps of
-the data smoothing used for the cytokine integral classifier. 
+the data smoothing used for the cytokine integral classifier.
 
-To run this script, you need raw cytokine time series in the data/final/ folder. 
-You can change which dataset is plotted in the __main__ block at the end of the script. 
+To run this script, you need raw cytokine time series in the data/final/ folder.
+You can change which dataset is plotted in the __main__ block at the end of the script.
 
 @author:frbourassa
 September 1, 2019
@@ -17,9 +17,11 @@ sns.reset_orig()
 
 import os, sys
 main_dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, main_dir_path)
+if main_dir_path not in sys.path:
+    sys.path.insert(0, main_dir_path)
 
-
+# Slightly different process_file (legacy version) that returns spline objects
+# and dataframes shaped differently from usual version
 from utils.plotting_splines import nicer_name, process_file
 
 plt.rcParams["figure.figsize"] = [6.5, 6]
@@ -93,7 +95,7 @@ def plot_spline_process_steps(chosen, df_raw, df_log, df_smooth, df_spline):
     ax.plot(exp_times0, ysmooth, **style_smooth, label="Smoothed")
     ax.plot(spline_times, yspline, **style_spline, label="Cubic spline")
     ax.plot(spline_knots, yknots, **style_knots, label="Spline knots")
-    ax.set_xlabel("Time [h]")
+    ax.set_xlabel("Time (h)")
     ylbl = r"$\log_{10}($" + cytokine + r"$ / \mathrm{LOD})$"
     ax.set_ylabel(ylbl)
     ax.legend()
@@ -114,7 +116,7 @@ def plot_spline_process_steps(chosen, df_raw, df_log, df_smooth, df_spline):
     ax.plot(exp_times0, ylog, **style_raw, label="Log")
     ax.plot(exp_times0, ysmooth, **style_smooth, label="Smoothed")
     ax.set_ylabel(ylbl)
-    ax.set_xlabel("Time [h]")
+    ax.set_xlabel("Time (h)")
     # Same axes for all three plots after rescaling
     ax.set_ylim(ylims)
     ax.set_title("C", loc="left")
@@ -134,9 +136,7 @@ if __name__ == "__main__":
 
     # Choose the data file and import it.
     folder = os.path.join(main_dir_path, "data", "final")
-    #pklfile = "cytokineConcentrationPickleFile-20190412-PeptideComparison_OT1_Timeseries_18-final.pkl"
-    #pklfile = "cytokineConcentrationPickleFile-20190718-PeptideComparison_OT1_Timeseries_20-final.pkl"
-    pklfile = "cytokineConcentrationPickleFile-20190608-PeptideComparison_OT1_Timeseries_19-final.pkl"
+    pklfile = "cytokineConcentrationPickleFile-20190608-PeptideComparison_3-final.hdf"
     ret = process_file(folder, pklfile, **process_args)
     [data, data_log, data_smooth, spline_frame] = ret
 

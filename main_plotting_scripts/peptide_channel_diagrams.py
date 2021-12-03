@@ -2,9 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import matplotlib as mpl
-import os
+import os, sys
+main_dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if main_dir_path not in sys.path:
+    sys.path.insert(0, main_dir_path)
 
-import chancap.chancapmc as chancapmc
+import chancapmc.chancapmc as chancapmc
 
 plt.rcParams["figure.figsize"] = (1.75, 1.5)
 plt.rcParams["axes.labelsize"] = 9.
@@ -38,7 +41,7 @@ def cartoon_limited_peptide_distrib():
     ax.spines['top'].set_visible(False)
     ax.tick_params(axis="both", width=0.8, length=2.5)
     fig.tight_layout(h_pad=0.1, w_pad=0.1)
-    fig.savefig(os.path.join("figures", "supp",
+    fig.savefig(os.path.join("figures", "capacity",
                 "cartoon_peptides_limited_distribution.pdf"),
                 transparent=True, format="pdf")
     #plt.show()
@@ -89,7 +92,7 @@ def cartoon_limited_param_distrib(nz=0.06):
     ax.set_xticks([])
     ax.set_yticks([])
     fig.tight_layout()
-    fig.savefig(os.path.join("figures", "supp",
+    fig.savefig(os.path.join("figures", "capacity",
                 "cartoon_parameters_limited_distribution.pdf"),
                 transparent=True, format="pdf")
     #plt.show()
@@ -154,7 +157,7 @@ def cartoon_full_param_distrib(do_optimize=True, nz=0.06):
     ax.set_yticks([])
     fig.tight_layout()
     tag = "optim" if do_optimize else "no-optim"
-    fig.savefig(os.path.join("figures", "supp",
+    fig.savefig(os.path.join("figures", "capacity",
                 "cartoon_parameters_full_distribution_{}.pdf".format(tag)),
                 transparent=True, format="pdf")
     #plt.show()
@@ -181,7 +184,7 @@ def cartoon_full_peptide_distrib(optim_probs, do_optimize=True):
     ax.tick_params(axis="both", width=0.8, length=2.5)
     fig.tight_layout()
     tag = "optim" if do_optimize else "no-optim"
-    fig.savefig(os.path.join("figures", "supp",
+    fig.savefig(os.path.join("figures", "capacity",
                 "cartoon_peptides_full_distribution_{}.pdf".format(tag)),
                 transparent=True, format="pdf")
     #plt.show()
@@ -284,7 +287,7 @@ def cartoon_parameter_interpolation(nz=0.06):
             if i == 1:
                 axes_chl[i][j].set_xlabel(r"$\log_{10}(EC_{50})$", size=fs)
     fig.tight_layout(h_pad=0.3, w_pad=0.3)
-    fig.savefig(os.path.join("figures", "supp",
+    fig.savefig(os.path.join("figures", "capacity",
         "cartoon_ballistic_params_distribs_interpolation.pdf"),
         transparent=True, bbox_inches="tight")
     #plt.show()

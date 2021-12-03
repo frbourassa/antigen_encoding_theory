@@ -135,7 +135,7 @@ def process_file(folder, file, **kwargs):
     Also tries to load limits of detection
 
     Args:
-        data_file (str): path to the raw data file (a pickled pd.DataFrame)
+        data_file (str): path to the raw data file (a HDF5 pd.DataFrame)
 
     Keyword args:
         take_log (bool): True to take the log of the concentrations in the
@@ -169,7 +169,7 @@ def process_file(folder, file, **kwargs):
     max_time = kwargs.get("max_time", 72)
 
     # Import raw data
-    data = pd.read_pickle(os.path.join(folder, file))
+    data = pd.read_hdf(os.path.join(folder, file))
 
     # Put all timepoints for a given cytokine in continuous columns
     data = data.stack().unstack('Cytokine')
@@ -194,4 +194,4 @@ def process_file(folder, file, **kwargs):
 
 
 if __name__ == "__main__":
-    print(nicer_name("cytokineConcentrationPickleFile-20210619-OT1_Timeseries_18.pkl"))
+    print(nicer_name("cytokineConcentrationPickleFile-20210619-OT1_Timeseries_1.pkl"))
