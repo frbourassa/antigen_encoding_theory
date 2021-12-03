@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import utils.custom_pandas as cpd
 
-from utils.discrete_continuous_info import discrete_continuous_info_fast, discrete_continuous_info_ref
+from metrics.discrete_continuous_info import discrete_continuous_info_fast, discrete_continuous_info_ref
 
 def compute_mi_slice(df, q, t, window, knn=3, speed="fast"):
     """ Compute the mutual information between the variable X in the columns of df
