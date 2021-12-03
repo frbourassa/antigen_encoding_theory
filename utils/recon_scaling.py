@@ -62,9 +62,10 @@ def import_folder_naive_data(folder, datalist):
     fileDateDict = {}
     # First filter the list of file names
     for fileName in os.listdir(folder):
-        if fileName.endswith("-final.pkl") and fileName in datalist:
-            fileNameDict[fileName[41:-10]] = fileName
-            fileDateDict[fileName[41:-10]] = fileName.split("-")[1]
+        if fileName.endswith("-final.hdf") and fileName in datalist:
+            cuteName = "-".join(fileName.split("-")[2:-1])
+            fileNameDict[cuteName] = fileName
+            fileDateDict[cuteName] = fileName.split("-")[1]
     sortedFileNames = sorted(fileNameDict.keys(), key=fileDateDict.get)
 
     # Then, import the naive data, drop everything unwanted, concatenate.
@@ -73,7 +74,7 @@ def import_folder_naive_data(folder, datalist):
     for fileName in sortedFileNames:
         fullFileName = fileNameDict[fileName]
         try:
-            df = pd.read_pickle(os.path.join(folder, fullFileName))
+            df = pd.read_hdf(os.path.join(folder, fullFileName))
         except:
             print("Could not load", fileName)
             continue

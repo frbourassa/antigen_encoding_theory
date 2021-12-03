@@ -1,5 +1,5 @@
 """ Very specific script that regroups all channel capacity estimation
-steps with the parameters appropriate for HighMI_13 in a function,
+steps with the parameters appropriate for HighMI_3 in a function,
 which can be called in parallel multiple time on different bootstrap samples
 
 The __main__ block does the parallel computing and saves results.
@@ -7,7 +7,7 @@ It's easier to run multiprocessing from a script than a notebook; the latter
 causes some bugs with more recent versions of multiprocessing.
 
 To run this code, you need the same inputs as in the notebook
-compute_channel_capacity_HighMI_13.ipynb.
+compute_channel_capacity_HighMI_3.ipynb.
 
 @author:frbourassa
 July 13, 2021
@@ -52,7 +52,7 @@ def capacity_from_latentspace_params_replicate_wrapper(seed, df, **kwargs):
     stdout_backup = os.dup(1)
     stderr_backup = os.dup(2)
     sys.stdout.flush()
-    fname = os.path.join("results", "capacity", "bootstrap",
+    fname = os.path.join(main_dir_path, "results", "capacity", "bootstrap",
                             "replicate_seed{}_terminal")
     f_out = open(fname.format(seed) + ".out", "w")
     f_err = open(fname.format(seed) + "_err.out", "w")
@@ -228,8 +228,9 @@ def capacity_from_latentspace_params_replicate(seed, df_proj, **kwargs):
     # the interpolation as a function of EC50.
     today = date.today().strftime("%d-%b-%Y").lower()
     if kwargs.get("save_inter", True):
-        df_params.to_hdf(os.path.join("results", "capacity", "bootstrap",
-                    "df_params_highmi13_seed{}_{}.hdf".format(seed, today)),
+        df_params.to_hdf(os.path.join(main_dir_path,
+                    "results", "capacity", "bootstrap",
+                    "df_params_highmi3_seed{}_{}.hdf".format(seed, today)),
                     key=str(seed), mode="a")
         params_correls1 = np.array([]) if params_correls1 is None else params_correls1
         params_correls2 = np.array([]) if params_correls2 is None else params_correls2
@@ -243,7 +244,7 @@ def capacity_from_latentspace_params_replicate(seed, df_proj, **kwargs):
             "regul_rate1": regul_rate1.tolist(),
             "regul_rate2": regul_rate2.tolist(),
         }
-        with open(os.path.join("results", "capacity", "bootstrap",
+        with open(os.path.join(main_dir_path, "results", "capacity", "bootstrap",
                 "hyperparameters_seed{}_{}.json".format(seed, today)),
                 "w") as handle:
             json.dump(kw_dict, handle)
@@ -268,7 +269,8 @@ def capacity_from_latentspace_params_replicate(seed, df_proj, **kwargs):
     df_params_chol, df_params_chol_estim_vari = compute_cholesky_dataframe(df_params_covs, ser_npts)
 
     # Interpolate multivariate distributions as a function of log10(EC50)
-    df_ec50s_refs = pd.read_json(os.path.join("data", "misc", "potencies_df_2021.json"))
+    df_ec50s_refs = pd.read_json(os.path.join(main_dir_path, "data",
+                                    "misc", "potencies_df_2021.json"))
     df_ec50s_refs.columns.name = "Reference"; df_ec50s_refs.index.name = "Peptide"
     ser_ec50s_avglog = np.log10(df_ec50s_refs).mean(axis=1)
 
@@ -327,8 +329,8 @@ def capacity_from_latentspace_params_replicate(seed, df_proj, **kwargs):
         "seed": seed_ba
     }
     folder = "capacity"
-    suffix = "_HighMI_13"
-    filename = os.path.join("results", "capacity", "bootstrap",
+    suffix = "_HighMI_3"
+    filename = os.path.join(main_dir_path, "results", "capacity", "bootstrap",
                 "replicate_log{}_seed{}_{}.json".format(suffix, seed, today))
     with open(filename, "w") as hand:
         json.dump(run_info, hand)
@@ -360,14 +362,24 @@ def main_bootstrap_channel_capacity(n_replicates, boot_frac=1.):
         (tuple): avg_distrib, vari_distrib
     """
     ## Correct the raw data, removing faulty replicates
-    df_raw = pd.read_pickle(os.path.join("data", "final",
-            "cytokineConcentrationPickleFile-20210619-HighMI_13-final.pkl"))
+    # Import raw cytokine dataset. Concatenate back the nine separate files
+    df_raw = {}
+    for i in range(1, 10):
+        df_raw[str(i)] = pd.read_hdf(os.path.join(main_dir_path, "data", "final",
+                "cytokineConcentrationPickleFile-20210619-HighMI_3-{}-final.hdf".format(i)))
+    df_raw = pd.concat(df_raw, names=["Replicate"])
+    order_levels = np.asarray(df_raw.index.names)
+    order_levels[:2] = order_levels[1::-1]
+    df_raw = df_raw.reorder_levels(order_levels)
+    del order_levels
 
-    # Remove faulty replicates; for justification, see Jupyter notebook for HighMI_13
+    # Remove faulty replicates; for justification, see Jupyter notebook for HighMI_3
     # Basically, other stronger peptides have splashed in those wells
-    randomgen = np.random.default_rng(seed=1349839)
-    for rep in ["2", "3", "5", "6", "8", "9"]:
-        replace_time_series(df_raw, (slice(None), rep, "30k", "E1", "1uM"), ["1", "4", "7"], randomgen)
+
+    # If you want to replace the E1 replicates instead of dropping them
+    #randomgen = np.random.default_rng(seed=1349839)
+    #for rep in ["2", "3", "5", "6", "8", "9"]:
+    #    replace_time_series(df_raw, (slice(None), rep, "30k", "E1", "1uM"), ["1", "4", "7"], randomgen)
 
     # Drop faulty replicates for other peptides
     for cyto in df_raw.index.get_level_values("Cytokine").unique():
@@ -375,30 +387,39 @@ def main_bootstrap_channel_capacity(n_replicates, boot_frac=1.):
             df_raw = df_raw.drop((cyto, rep, "30k", "V4", "1nM"), axis=0)
         for rep in ["3", "6", "9"]:
             df_raw = df_raw.drop((cyto, rep, "30k", "G4", "1nM"), axis=0)
+        for rep in ["2", "3", "5", "6", "8", "9"]:
+            df_raw = df_raw.drop((cyto, rep, "30k", "E1", "1uM"), axis=0)
 
     # Write back to a file
-    fname_corrected = "cytokineConcentrationPickleFile-20210619-HighMI_13_corrected-final.pkl"
-    df_raw.to_pickle(os.path.join("data", "final", fname_corrected))
+    fname_corrected = "cytokineConcentrationPickleFile-20210619-HighMI_3_corrected-final.hdf"
+    df_raw.to_hdf(os.path.join(main_dir_path, "data", "final",
+                                        fname_corrected), key="df")
 
     ## Process the corrected data
     # Basically grouping all levels; TCellNumber not necessary because only one
     # value, and Peptide already done.
-    _, _, _, df_wt = process_file_filter(folder=os.path.join("data", "final/"),
+    # Use split_filter_levels=["Replicate", "Concentration"] if the E1
+    # replicates were replaced instead of dropped, above.
+    _, _, _, df_wt = process_file_filter(
+                    folder=os.path.join(main_dir_path, "data", "final/"),
                     file=fname_corrected, do_filter_null=True, filter_pval=0.5,
                     null_reference="E1", choice_filter_cyto="IFNg",
                     choice_remove_cyto=["IL-2", "IL-17A", "TNFa", "IL-6"],
-                    split_filter_levels=["Replicate", "Concentration"],
+                    split_filter_levels=["Concentration"],
                     remove_il17=False, do_self_filter=True)
 
     # Write the corrected and processed file to hdf
-    df_wt.to_hdf(os.path.join("data", "final", "HighMI_13_corrected.hdf"), key="df")
+    df_wt.to_hdf(os.path.join(main_dir_path, "data", "final",
+                                "HighMI_3_corrected.hdf"), key="df")
 
     ## Project to latent space and normalize
     peptides = ["N4", "Q4", "T4", "V4", "G4", "E1", "A2", "Y3"]
     concentrations = ["1uM", "100nM", "10nM", "1nM"]
-    df_min, df_max = pd.read_pickle(os.path.join("data", "trained-networks",
-                "min_max-thomasRecommendedTraining.pkl"))
-    mlpcoefs = np.load(os.path.join("data", "trained-networks",
+    minmaxfile = os.path.join(main_dir_path, "data", "trained-networks",
+                            "min_max-thomasRecommendedTraining.hdf")
+    df_min = pd.read_hdf(minmaxfile, key="df_min")
+    df_max = pd.read_hdf(minmaxfile, key="df_max")
+    mlpcoefs = np.load(os.path.join(main_dir_path, "data", "trained-networks",
                 "mlp_input_weights-thomasRecommendedTraining.npy"))
 
     cytokines = df_min.index.get_level_values("Cytokine")
@@ -408,7 +429,7 @@ def main_bootstrap_channel_capacity(n_replicates, boot_frac=1.):
     folder = "capacity"
     suffix = "_HighMI"
 
-    df_wt = pd.concat({"HighMI_13":df_wt}, names=["Data"])
+    df_wt = pd.concat({"HighMI_3":df_wt}, names=["Data"])
 
     df = df_wt.unstack("Time").loc[:, ("integral", cytokines, times)].stack("Time")
     df = (df - df_min)/(df_max - df_min)
@@ -417,8 +438,8 @@ def main_bootstrap_channel_capacity(n_replicates, boot_frac=1.):
 
     ## Import a v2/v1 slope from a dataset where IL-2 consumption was earlier
     df_highmi1 = pd.concat(
-        {"HighMI_1-{}".format(i): pd.read_hdf(os.path.join("data", "processed",
-            "HighMI_1-{}.hdf".format(i)))
+        {"HighMI_1-{}".format(i): pd.read_hdf(os.path.join(main_dir_path,
+            "data", "processed", "HighMI_1-{}.hdf".format(i)))
         for i in range(1, 5)}, names=["Data"])
     df_highmi1 = df_highmi1.unstack("Time").loc[:, ("integral", cytokines, times)].stack("Time")
     df_highmi1 = (df_highmi1 - df_min)/(df_max - df_min)
@@ -495,14 +516,14 @@ if __name__ == "__main__":
         "run_duration (s)": main_duration
     }
     ret_dict.update(ret[2])
-    with open(os.path.join("results", "capacity",
+    with open(os.path.join(main_dir_path, "results", "capacity",
                 "bootstrap_results_{}.json".format(today)), "w") as hand:
         json.dump(ret_dict, hand)
 
     # Combine all seed files
     full_run_dict = {}
     full_hyper_dict = {}
-    folder = os.path.join("results", "capacity", "bootstrap")
+    folder = os.path.join(main_dir_path, "results", "capacity", "bootstrap")
     prefix = "all_bootstrap_replicates_"
     for fi in os.listdir(folder):
         seed_key = fi.split("_")[-2]
