@@ -209,14 +209,14 @@ def lod_import(date, lod_folder=os.path.join("data", "LOD")):
         lod_file = []
 
     if lod_file == []:
-        print("Determined LOD for experiment {} ".format(date))
+        print("Determined LOD from data for experiment {} ".format(date))
         return {}
 
     else:
         try:
             with open(os.path.join(lod_folder, lod_file[0]), "r") as handle:
                 lod_df = pd.read_json(handle, orient="columns")
-                print("Determined LOD for experiment {}".format(date))
+                print("Determined LOD from LOD file for experiment {}".format(date))
         except:
             print("Error while parsing LOD file {}; ".format(lod_file[0])
                     + "will use the minimum value of each cytokine instead.")
