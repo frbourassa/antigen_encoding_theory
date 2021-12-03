@@ -23,7 +23,7 @@ from ltspcyt.scripts.process_raw_data import process_file
 if __name__ == "__main__":
     # Set to False if there are only a few new datasets to process
     # True by default: all dataframes are processed and written.
-    overwrite = True
+    overwrite = False
     # Adapt dataframes in data/initial/
     initial_folder = os.path.join("data", "initial/")
 

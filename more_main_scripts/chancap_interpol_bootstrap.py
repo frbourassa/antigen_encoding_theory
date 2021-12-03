@@ -409,7 +409,7 @@ def main_bootstrap_channel_capacity(n_replicates, boot_frac=1.):
                     remove_il17=False, do_self_filter=True)
 
     # Write the corrected and processed file to hdf
-    df_wt.to_hdf(os.path.join(main_dir_path, "data", "final",
+    df_wt.to_hdf(os.path.join(main_dir_path, "data",
                                 "HighMI_3_corrected.hdf"), key="df")
 
     ## Project to latent space and normalize
