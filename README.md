@@ -119,4 +119,4 @@ This repository is licensed under the GNU GPLv3.0 because one of the scripts (`e
 from [Grabowksi et al., 2019](https://dx.doi.org/10.1098/rsif.2018.0792),
 which is also licensed under GPLv3.0. Other dependencies are licensed under the BSD-3-Clause License, which is compatible with GPLv3.0.
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5758462.svg)](https://doi.org/10.5281/zenodo.5758462)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5758509.svg)](https://doi.org/10.5281/zenodo.5758509)
