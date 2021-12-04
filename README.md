@@ -38,7 +38,7 @@ Four compressed data files need to be unzipped in the appropriate folders before
  - ``antigen_encoding_data_misc.zip``: unzip contents in ``data/misc/``. Contains plotting parameters and EC50 values for antigens.
  - ``antigen_encoding_trained_networks.zip``: unzip contents in ``data/trained-networks/``. Contains projection matrix and normalization factors to construct the latent space, and also other weight matrices of the default neural network.
 
-They are available on demand from the authors. Also available on demand are the output files of the code, for users having trouble running the code themselves.
+These files are available from the Github release notes of [v0.2.0-alpha](https://github.com/frbourassa/antigen_encoding_theory/releases/tag/v0.2.0-alpha). On demand, the output files of the code are also available, for users having trouble running the code themselves.
 
 ### Data preprocessing
 After downloading and unzipping the cytokine data files (HDF5 format) in ``data/initial/``, run the script ``run_first_prepare_data.py``, which will save cleaned up versions of the raw dataframes in ``data/final/``, then process all cytokine time series (log transformation, smoothing spline interpolation, time integration), and saved the processed time series in ``data/processed/``.
@@ -106,3 +106,5 @@ This module provides functions to calculate channel capacity between any discret
 This repository is licensed under the GNU GPLv3.0 because one of the scripts (`estimate_channel_capacity_cce.ipynb`) uses the [`channel-capacity-estimator` package](https://github.com/pawel-czyz/channel-capacity-estimator)
 from [Grabowksi et al., 2019](https://dx.doi.org/10.1098/rsif.2018.0792),
 which is also licensed under GPLv3.0. Other dependencies are licensed under the BSD-3-Clause License, which is compatible with GPLv3.0.
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5758462.svg)](https://doi.org/10.5281/zenodo.5758462)
