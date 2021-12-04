@@ -12,4 +12,6 @@
 *.json
 *.bak
 *.out
+*.zip
+*.tar.gz
 data_old/

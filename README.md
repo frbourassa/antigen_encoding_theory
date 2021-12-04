@@ -4,8 +4,7 @@ Repository with all the necessary code for modelling cytokine dynamics in
 latent space, generating back cytokine data with reconstruction from the
 latent space, and computing the channel capacity of cytokine dynamics for
 mutual information with antigen quality. The code generates all the
-necessary results to reproduce the main and supplementary figures related to
-theoretical parts (latent space modelling and channel capacity) of the paper
+necessary results to reproduce the main and supplementary figures related to theoretical parts (latent space modelling and channel capacity) of the paper
 > Achar, S., Bourassa, F.X.P., Rademaker, T., ..., François, P., and Altan-Bonnet, G.,
 "Universal antigen encoding of T cell activation from high dimensional cytokine data",
 submitted, 2021.
@@ -17,23 +16,27 @@ Weights of the neural network that produces the latent space used throughout the
 
 ## Installation
 
-### Downloading the repository and submodules
-This project depends on code modules hosted as separate projects on Github and Gitlab and included as git submodules. Therefore, to obtain all necessary submodules for this repository's code to run, clone the repo using the `--recurse-submodules` option of `git clone`:
-```
-git clone --recurse-submodules https://github.com/frbourassa/antigen_encoding_theory.git
-```
-For help with projects that contain git submodules, see the
-[`git submodule` man page](https://git-scm.com/book/en/v2/Git-Tools-Submodules).
-
 ### Compilation of the ``chancapmc`` C module
+You need to run the Python setup script: first navigate to the chancapmc/ folder, then execute the script and move the built library (.so file) in the chancapmc/ folder:
+```bash
+>>> cd chancapmc/
+>>> python setup_chancapmc.py build_ext --inplace
+>>> mv build/lib*/chancapmc*.so .
+```
+Then, if you want, try running the test file for the Python interface:
+```bash
+python test_chancapmc.py
+```
+Unit tests in C are also available in the script `unittests.c`. Compile and execute them according to the instructions given in the header of the file.
 
+More details can be found in the Github repository where this module is hosted separately: https://github.com/frbourassa/chancapmc .
 
 ### Downloading data
 Four compressed data files need to be unzipped in the appropriate folders before running the code.
  - ``antigen_encoding_cytokine_timeseries.zip``: unzip contents in ``data/initial/``. Contains the time series data.
- - ``antigen_encoding_cytokine_lod.zip``: unzip contents in ``data/LOD/``. Contains limits of detection used to process some files (this one is not essential, the code can run without it).
+ - ``antigen_encoding_cytokine_lods.zip``: unzip contents in ``data/LOD/``. Contains limits of detection used to process some files (this one is not essential, the code can run without it).
  - ``antigen_encoding_data_misc.zip``: unzip contents in ``data/misc/``. Contains plotting parameters and EC50 values for antigens.
- - ``antigen_encoding_network_weights.zip``: unzip contents in ``data/trained-networks/``. Contains projection matrix and normalization factors to construct the latent space, and also other weight matrices of the default neural network.
+ - ``antigen_encoding_trained_networks.zip``: unzip contents in ``data/trained-networks/``. Contains projection matrix and normalization factors to construct the latent space, and also other weight matrices of the default neural network.
 
 They are available on demand from the authors. Also available on demand are the output files of the code, for users having trouble running the code themselves.
 
@@ -65,7 +68,7 @@ We give more details on these scripts and notebooks in the CONTENTS.md file. Mos
 
 
 ## Diagram of the code structure
-The following diagram represents the main dependencies between scripts in this project. Scripts are colored per theme (model fitting: orange, reconstruction: yellow, channel capacity: green, data processing: pink).  Indented scripts are those which need other scripts to be run first, as indicated by arrows on the left or right, annotated with the folders where intermediate results are stored. Scripts which produce figures included in the main or supplementary text are indicated by arrows going to the folders `figures/main/` or `figures/supp/`.
+The following diagram represents the main dependencies between most of the scripts in this project. Scripts are colored per theme (neural networks: pale orange, model fitting: orange, reconstruction: yellow, channel capacity: green, data processing: pink).  Indented scripts are those which need other scripts to be run first, as indicated by arrows on the left or right, annotated with the folders where intermediate results are stored. Scripts which produce figures included in the main or supplementary text are indicated by arrows going to the sub-folders in `figures/`.
 
 ![Code structure diagram](figures/code_chart_short.svg)
 
@@ -87,8 +90,19 @@ The following additional Python packages were installed and are necessary for sp
 
 The exact Python configuration used is included in ``data/python_environment.yml``.
 
-Moreover, a C compiler is necessary to build the module ``chancapmc`` (C code interfaced with the Python C API). The module was tested with compilers ``clang-1103.0.32.62`` (macOS) and ``gcc 4.9.4`` (Linux).  
+Moreover, a C compiler is necessary to build the module ``chancapmc`` (C code interfaced with the Python C API). The module was tested with compilers Apple ``clang 11.0.3`` (macOS) and GNU ``gcc 4.9.4`` (Linux).  
+
+## Note on sub-modules
+The code modules `ltspcyt` (<ins>la</ins>tent <ins>sp</ins>ace <ins>cyt</ins>okines) and `chancapmc` (<ins>chan</ins>nel <ins>cap</ins>acity <ins>M</ins>onte <ins>C</ins>arlo) contain the core functions for data processing, latent space building, model fitting (`ltspcyt`), and channel capacity calculation (`chancapmc`).
+
+The `ltspcyt` module is basically is a collection of the core functions under the GUI of [antigen-encoding-pipeline](https://github.com/soorajachar/antigen-encoding-pipeline), with added functions and classes for cytokine reconstruction.  Of interest, it includes  a customized version of *Scipy*'s  `curve_fit` function that is applicable to vector-valued functions of a scalar variable and can add L1 regularization of the fitted parameters.
+
+`chancapmc` is also hosted separately on [Github](https://github.com/frbourassa/chancapmc): https://github.com/frbourassa/chancapmc It is licensed under the more permissive BSD 3-Clause-License.
+
+This module provides functions to calculate channel capacity between any discrete input variable Q and continuous (vectorial) output variable **Y** which has multivariate normal conditional distributions P(**Y**|Q). It may be extended to more multivariate distributions in the future.
 
 
 ## License information
-This repository is licensed under the GNU GPLv3.0 because one of the scripts (`estimate_channel_capacity_cce.ipynb`) uses the `channel-capacity-estimator` package from Grabowksi et al., 2019, which is also licensed under GPLv3.0. Other dependencies are licensed under the BSD 3-clause license, which is compatible with GPLv3.0.
+This repository is licensed under the GNU GPLv3.0 because one of the scripts (`estimate_channel_capacity_cce.ipynb`) uses the [`channel-capacity-estimator` package](https://github.com/pawel-czyz/channel-capacity-estimator)
+from [Grabowksi et al., 2019](https://dx.doi.org/10.1098/rsif.2018.0792),
+which is also licensed under GPLv3.0. Other dependencies are licensed under the BSD-3-Clause License, which is compatible with GPLv3.0.
