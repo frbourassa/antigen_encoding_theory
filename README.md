@@ -3,104 +3,91 @@
 Repository with all the necessary code for modelling cytokine dynamics in
 latent space, generating back cytokine data with reconstruction from the
 latent space, and computing the channel capacity of cytokine dynamics for
-mutual information with antigen quality. The code produces all the
+mutual information with antigen quality. The code generates all the
 necessary results to reproduce the main and supplementary figures related to
 theoretical parts (latent space modelling and channel capacity) of the paper
 > Achar, S., Bourassa, F.X.P., Rademaker, T., ..., François, P., and Altan-Bonnet, G.,
 "Universal antigen encoding of T cell activation from high dimensional cytokine data",
 submitted, 2021.
 
-A neural network can be trained using the cytokine-pipeline user interface. Weights of the network weights used throughout the paper are provided along with all data necessary to run the code, [also hosted on Github](https://github.com/tjrademaker/cytokine-pipeline).
+Weights of the neural network that produces the latent space used throughout the paper are provided, along with all data necessary to run the code. More neural networks can be trained and more cytokine data processing and fitting can be done using the cytokine-pipeline user interface,
+[also hosted on Github](https://github.com/soorajachar/antigen-encoding-pipeline).
+
 
 
 ## Installation
-This project depends on code modules hosted as separate projects on Github and Gitlab and included as git submodules. We proceeded this way because we use those modules in various research projects and it was easier to update them everywhere like that. Therefore, to obtain all necessary submodules for this repository's code to run, clone the repo using the `--recurse-submodules` option of `git clone`:
+
+### Downloading the repository and submodules
+This project depends on code modules hosted as separate projects on Github and Gitlab and included as git submodules. Therefore, to obtain all necessary submodules for this repository's code to run, clone the repo using the `--recurse-submodules` option of `git clone`:
 ```
 git clone --recurse-submodules https://github.com/frbourassa/antigen_encoding_theory.git
 ```
 For help with projects that contain git submodules, see the
 [`git submodule` man page](https://git-scm.com/book/en/v2/Git-Tools-Submodules).
 
-## Contents
+### Compilation of the ``chancapmc`` C module
 
-### Main calculations
-The most important calculations are in Jupyter notebooks (Python language):
 
-- `fit_latentspace_model.ipynb`: fit models (constant velocity and force with matching) to cytokine time integrals projected in latent space. Some results of this notebook are used in main figure 3 and supplementary figures related to model fits and model parameter space (supp. section 4).
+### Downloading data
+Four compressed data files need to be unzipped in the appropriate folders before running the code.
+ - ``antigen_encoding_cytokine_timeseries.zip``: unzip contents in ``data/initial/``. Contains the time series data.
+ - ``antigen_encoding_cytokine_lod.zip``: unzip contents in ``data/LOD/``. Contains limits of detection used to process some files (this one is not essential, the code can run without it).
+ - ``antigen_encoding_data_misc.zip``: unzip contents in ``data/misc/``. Contains plotting parameters and EC50 values for antigens.
+ - ``antigen_encoding_network_weights.zip``: unzip contents in ``data/trained-networks/``. Contains projection matrix and normalization factors to construct the latent space, and also other weight matrices of the default neural network.
 
-- `reconstruct_cytokines_fromLSdata.ipynb`: project multi-dimensional cytokine time integrals into latent space, optimize and test a reconstruction (i.e., decoder) model that recovers the full cytokine time courses from latent space trajectories. The results of this notebook are used in main figure 2 and supplementary figures related to cytokine reconstruction (supp. section 5)
+They are available on demand from the authors. Also available on demand are the output files of the code, for users having trouble running the code themselves.
 
-- `reconstruct_cytokines_fromLSmodel_pvalues.ipynb`: use latent space models and reconstruction as a model that fits experimental cytokine time series (supp. section 5). Project multi-dimensional cytokine time integrals into latent space, fit model trajectories in latent space, and reconstruct the cytokine trajectories corresponding to the model fits using a pre-optimized reconstruction model. Produces directly the supplementary figure about using the latent space model as a cytokine model.
-
-- `generate_synthetic_data.ipynb`: use latent space models and reconstruction as a generative model of cytokine time series (supp. section 5). Project data fit model parameters on latent space trajectories; then, estimate the distributions of model parameters for each antigen, sample from them, and reconstruct the cytokine trajectories corresponding to the chosen parameter values, using a pre-optimized reconstruction model. Results of this notebook are used for the supplementary figure about generation of synthetic cytokine time series.
-
-- `compute_channel_capacity_HighMI_3.ipynb`: channel capacity calculation between antigen quality and model parameters describing latent space time courses. Results of this notebook are used for main and supplementary figures related to channel capacity and theoretical antigen classes.
-
-- `theoretical_antigen_classes_from_capacity_HighMI_3.ipynb`: determining theoretical antigen classes from the channel capacity calculation and resulting optimal antigen distribution, plotting their latent space trajectories and model parameter space distributions, and even reconstructing the corresponding cytokine time series.  Directly produces main figure 3, panels C and D (maybe we should split it eventually).
+### Data preprocessing
+After downloading and unzipping the cytokine data files (HDF5 format) in ``data/initial/``, run the script ``run_first_prepare_data.py``, which will save cleaned up versions of the raw dataframes in ``data/final/``, then process all cytokine time series (log transformation, smoothing spline interpolation, time integration), and saved the processed time series in ``data/processed/``.
 
 
 
-### Secondary calculations
-More secondary calculations and plotting used in specific figures and supplementary figures are found in other Python scripts in the `more_main_scripts/` folder:
+## Suggested order in which to run the code
 
-- `manifold_dimension.py`: calculation of the cytokine manifold Hausdorff dimension from the correlation function scaling. Directly produces the supplementary figure about Hausdorff dimension
+As a general rule, always run scripts from the top folder of the repository (i.e. folder ``antigen_encoding_theory/`` unless you renamed it) and not from subfolders within.
 
-- `chancap_interpol_bootstrap.py`: script that runs multiple repeats of the channel capacity calculation, perturbing the regularization hyper-parameters used in model fitting as a way to assess the robustness of the channel capacity result against perturbations in the model parameter distributions. It uses multiprocessing for improved speed, but still takes many minutes to converge, depending on the number of repeats carried out.
+Some scripts and Jupyter notebooks depend on the outputs saved to disks by other code files. The first time you use this repository, we suggest executing them in the following order. Afterwards, once the outputs are saved on disk, it becomes easier to go from one code file to the other.
 
-- `paramspace_distance_drugs_withPCA.py`: compute Earth Mover's distance, or another distribution distance metric, between model parameter distributions for naive and drug-perturbed conditions, for each drug among the panel tested. Distributions are projected on PCA axes before distances are computed along each PC. Similar calculations are made for main figure 4. The distance functions are defined in the `metrics/` folder.
+ 0. `run_first_prepare_data.py` to process data.
+ 1. `fit_latentspace_model.ipynb` to fit model parameters on latent space trajectories. Ideally, run three times, once for each version of the model.
+ 2. `reconstruct_cytokines_fromLSdata.ipynb` to reconstruct cytokine time series from data projected in latent space.
+ 3. `reconstruct_cytokines_fromLSmodel_pvalues.ipynb` to use the latent space model as a cytokine model that can fit cytokines themselves, via reconstruction.
+ 4. `generate_synthetic_data.ipynb` to generate new cytokine time series by sampling model parameters and reconstructing the corresponding cytokines.
+ 5. `compute_channel_capacity_HighMI_3.ipynb` to compute channel capacity $C$ of antigen encoding using interpolation of multivariate gaussian distributions in parameter space and our `chancapmc` module (Blahut-Arimoto algorithm with Monte Carlo integration for continuous input-output pdfs).
+ 6. `theoretical_antigen_classes_from_capacity_HighMI_3.ipynb` to subdivide the continuum of antigen qualities into $2^{C}$ ''theoretical'' antigen classes.
 
-- `estimate_channel_capacity_cce.ipynb`: Estimate channel capacity of model parameter space using the  [algorithm of Grabowski et al., 2019](https://dx.doi.org/10.1098/rsif.2018.0792). To run this notebook, you first need to install the `cce` package, following the instructions given on its [Github page](https://github.com/pawel-czyz/channel-capacity-estimator).
+Once these main codes are run and their outputs saved, secondary scripts can be run more freely, and lastly plotting functions
+ 7. Secondary calculations in `more_main_scripts/`. Some will save further output files used by plotting scripts.
+ 8. Finally, run plotting scripts in `main_plotting_scripts/`.
 
+We give more details on these scripts and notebooks in the CONTENTS.md file. Most files also contain indications on their dependencies in their headers. Also, the flowchart below illustrates those dependencies and the folders in which they share files.
 
-
-### Plotting code
-Some of the notebooks listed above produce panels included in the main text or supplementary text, because it would have been uselessly cumbersome to save all their results to disk and re-import them in a separate plotting script:
-- `theoretical_antigen_classes_from_capacity_HighMI_3.ipynb`
-- `reconstruct_cytokines_fromLSmodel_pvalues.ipynb`
-- `more_main_scripts/manifold_dimension.py`
-
-Other Jupyter notebooks import the results saved by the notebooks above, and sometimes perform minor supplementary calculations, to create figures included in the main text and supplementary information. They are in the `main_plotting_scripts/`folder. The code for those figures was kept separate from the bulk of calculations because the results could be exported easily and some figures require a lot of matplotlib commands. These plotting notebooks are:
-- `spline_process_explanation.py`: to create a supplementary figure detailing the steps of processing, smoothing and interpolation that we apply to experimental cytokine time series.
-- `plot_spline_panels.py`: plot cytokine time series and smoothing spline functions fitted on them for an entire dataset, with one panel per peptide and cytokine.
-- `model_fits_supp_panels.ipynb`: to create supplementary figures about latent space model fits. Need to run `fit_latentspace_model.ipynb` first.
-- `recon_supp_panels.ipynb`: to create supplementary figures about cytokine reconstruction and synthetic data generation. Need to run `reconstruct_cytokines_fromLSdata.ipynb` and `generate_synthetic_data.ipynb` first.
-- `reconstruction_linear_example.py`: cartoon illustrating why the cytokine manifold can't be perfectly reconstruction with linear regression alone.
-- `projection_3d_movie.py`: code to generate animated three-dimensional graphs of time courses of cytokine concentrations and time integrals.
-- `mi_results_supp_panels.ipynb`: to create supplementary figures about mutual information and channel capacity. Need to run  `compute_channel_capacity_HighMI_3.ipynb` and `more_main_scripts/estimate_channel_capacity_cce.ipynb` first.
-- `peptide_channel_diagrams.py`: to produce the supplementary figure cartoon explaining the channel capacity calculation procedure.
-- `latentspace_weights_interpretation.ipynb`: output layer weights interpretation and interpolation at the EC50 values of theoretical antigen classes found from channel capacity results. Generates panels for the supplementary figure about the neural network's weights interpretation.
-
-
-### Submodules hosted separately
-Many of the calculations performed in the above notebooks rely on lower-level functions defined in sub-modules. The code is documented in-place with comments, and explained in the supplementary text of the paper. These modules are:
-
-- `ltspcyt`: code to process (smooth and interpolate) raw cytokine dataframes, import processed data, fit latent space models, reconstruct cytokines from latent space trajectories.
-
-- `chancapmc`: C code (wrapped with the Python C-API) to compute channel capacity between antigen quality and model parameters describing the corresponding latent space trajectories.
-
-
-
-### Utility functions
-Some relevant calculations are defined in the scripts of the `utils/` folder. The noteworthy ones are:
-- `statistics.py`: contains statistical estimators of multivariate normal distributions. Also contains a homemade PCA implementation.
-- `distrib_interpolation.py`: functions to interpolated multivariate normal distribution parameters (means and Cholesky matrices).
-- `discrete_continuous_info.py`: our Python implementation of the bin-less MI estimator by Ross, made faster by using Scipy's cKDTree class.
-- `recon_scaling.py` : functions to scale back reconstructed cytokine trajectories to absolute cytokine concentration units.
-- Other files mostly contain functions imported by scripts or notebooks in the `main_plotting_scripts/` folder to make supplementary figures.
-
-
-A few other functions are in the `metrics/` folder. There is first the Kendall tau metric for our order accuracy measure. Then, there are different metrics to compute the distance between two sample distributions. To compare drug-perturbed model parameter distributions to unperturbed ones, we used Earth Mover's distance, but other distances are made available here.
-- `count_inversions.py`: script to compute the Kendall tau order metric of a list by counting the number of inversions in it, or equivalently the number of neighbor swaps required to order it.
-
-- `figure4_metrics.py`: function to compute some distance between two distributions projected along one or multiple PCA axes.
-- `earth_mover.py`: network-based calculation of Earth Mover's distance (EMD), useful when data is more than 1D. For the 1D case, the EMD reduces to the Wasserstein distance, which is implemented in *Scipy* as `scipy.stats.wasserstein_distance`.
-- `kldiv.py`: Kullback-Leibler divergence estimator, [written by David Huard](https://mail.python.org/pipermail/scipy-user/2011-May/029521.html) and found in a [Github gist](https://gist.github.com/atabakd/ed0f7581f8510c8587bc2f41a094b518), with a slight modification by us to prevent bugs from arising when identical or excessively close samples are present.
 
 
 ## Diagram of the code structure
 The following diagram represents the main dependencies between scripts in this project. Scripts are colored per theme (model fitting: orange, reconstruction: yellow, channel capacity: green, data processing: pink).  Indented scripts are those which need other scripts to be run first, as indicated by arrows on the left or right, annotated with the folders where intermediate results are stored. Scripts which produce figures included in the main or supplementary text are indicated by arrows going to the folders `figures/main/` or `figures/supp/`.
 
 ![Code structure diagram](figures/code_chart_short.svg)
+
+
+## Requirements
+The Python code was tested on Mac (macOS Catalina 10.15.7) and Linux (Linux 3.2.84-amd64-sata x86_64) with the Anaconda 2020.07 distribution, with the following versions for important packages:
+ - Python 3.7.6
+ - numpy 1.19.2
+ - scipy 1.5.2
+ - pandas 1.2.0
+ - matplotlib 3.3.2
+ - seaborn 0.11.1
+ - scikit-learn 0.23.2
+
+The following additional Python packages were installed and are necessary for specific scripts in the project (but not needed for most code):
+ - tensorflow 2.0.0 (macOS) or 2.3.0 (Linux)
+ - wurlitzer 2.0.1
+ - channel-capacity-estimator 1.0.1 (see [Github page](https://github.com/pawel-czyz/channel-capacity-estimator))
+
+The exact Python configuration used is included in ``data/python_environment.yml``.
+
+Moreover, a C compiler is necessary to build the module ``chancapmc`` (C code interfaced with the Python C API). The module was tested with compilers ``clang-1103.0.32.62`` (macOS) and ``gcc 4.9.4`` (Linux).  
 
 
 ## License information

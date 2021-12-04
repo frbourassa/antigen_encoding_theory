@@ -2,7 +2,7 @@
 
 @author:frbourassa
 """
-import os, sys
+import os
 import pandas as pd
 
 from ltspcyt.scripts.process_raw_data import (treat_missing_data,
@@ -191,7 +191,3 @@ def process_file(folder, file, **kwargs):
 
     # Return data in various stages of processing
     return [data, data_log, data_smooth, spline_frame]
-
-
-if __name__ == "__main__":
-    print(nicer_name("cytokineConcentrationPickleFile-20210619-OT1_Timeseries_1.pkl"))

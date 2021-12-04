@@ -516,11 +516,13 @@ if __name__ == "__main__":
         "run_duration (s)": main_duration
     }
     ret_dict.update(ret[2])
+
+    # Save summary results
     with open(os.path.join(main_dir_path, "results", "capacity",
-                "bootstrap_results_{}.json".format(today)), "w") as hand:
+                "capacity_bootstrap_results_HighMI_3_{}.json".format(today)), "w") as hand:
         json.dump(ret_dict, hand)
 
-    # Combine all seed files
+    # Combine all seed files for detailed results
     full_run_dict = {}
     full_hyper_dict = {}
     folder = os.path.join(main_dir_path, "results", "capacity", "bootstrap")
@@ -549,7 +551,7 @@ if __name__ == "__main__":
         with open(os.path.join(folder, fi), "w") as hand:
             json.dump(full_run_dict, hand)
 
-    # Clean up individual files left behind
+    # Clean up individual run files left behind
     for fi in os.listdir(folder):
         if fi.startswith("df_params") and fi.endswith("{}.hdf".format(today)):
             os.remove(os.path.join(folder, fi))
