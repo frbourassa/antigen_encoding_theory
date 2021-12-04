@@ -14,4 +14,8 @@
 *.out
 *.zip
 *.tar.gz
+*.so
+*.o
+chancapmc/build/*.7
+*.bin
 data_old/
