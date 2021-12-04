@@ -20,16 +20,67 @@ import os
 from ltspcyt.scripts.adapt_dataframes import main_adapt
 from ltspcyt.scripts.process_raw_data import process_file
 
+def clean_up_split_files(bak_file, original_files=[],
+                                folder=os.path.join("data", "initial/")):
+    """ Convert any new .bak file back to its original state (.hdf)
+    and delete files that were created from its splitting, if they
+    were not in the original repository's list of files. That list is
+    optional; if not provided, all bak files are put back in place
+    and their subfiles are deleted.
+    """
+    if not bak_file.endswith(".bak"):
+        raise ValueError("{} is not a .bak file.".format(bak_file))
+    # Find the file's nice name.
+    # Assuming all names start with cytokine...-date-...
+    nicename_bak = "-".join(bak_file.split("-")[2:])
+    nicename_bak = nicename_bak[:-4]  # Remove .bak
+
+    # Find subfiles with the same nice name
+    # If they were not in the original_repo, delete them
+    new_files = os.listdir(folder)
+    for f in new_files:
+        # Check if the nicename is just nicename_bak with -index.
+        nicename = "-".join(f.split("-")[2:-1])
+        # if so, we have a subfile, to delete if it did not exist before
+        if (nicename == nicename_bak):
+            if f not in original_files:
+                os.remove(os.path.join(folder, f))
+            else:
+                print("Found replicate {}".format(f, bak_file)
+                + " but did not delete because it was already there")
+
+    # If the bak file itself was not already there, revert it back
+    # We know its name ends in .bak, so we can slice the string to remove .bak
+    if bak_file not in original_files:
+        # Find the original in the original list
+        # look for same name except extension by including the . in startswith
+        orig_file = [a for a in original_files if a.startswith(bak_file[:-3])]
+        try:
+            orig_file = orig_file[0]
+        # Apparently that file did not exist in another state.
+        except:
+            print("Original file did not exist, leaving bak as it is")
+        # Can revert to old extension
+        else:
+            old_ext = orig_file.split(".")[-1]
+            os.rename(os.path.join(folder, bak_file),
+                os.path.join(folder, bak_file[:-4] + "." + old_ext))
+            print("Converted file {} back to {} format".format(bak_file, old_ext))
+    else:
+        print("file {} was kept as .bak because it existed".format(bak_file))
+    return 0
+
 if __name__ == "__main__":
     # Set to False if there are only a few new datasets to process
     # True by default: all dataframes are processed and written.
     overwrite = True
     # Adapt dataframes in data/initial/
     initial_folder = os.path.join("data", "initial/")
+    original_contents = os.listdir(initial_folder)
 
-    print("Starting to adapt dataframes...")
+    print("Starting to adapt dataframes...\n")
     main_adapt(initial_folder)
-    print("Finished adapting initial/ dataframes into final/")
+    print("\nFinished adapting initial/ dataframes into final/")
     print("Starting log-smoothing-integral processing...")
 
     # One can modify processing arguments here. The recommended values
@@ -58,4 +109,14 @@ if __name__ == "__main__":
                 [data, data_log, data_smooth, df_features] = res
                 # Save processed file
                 df_features.to_hdf(filename, key="df")
+
+
+    # After saving the final/ files, remove split files.
+    print("\nDone saving to data/processed/")
+    print("Cleaning up split files to leave data in initial/ unchanged...\n")
+    for bkf in os.listdir(os.path.join("data/", "initial/")):
+        if bkf.endswith(".bak"):
+            clean_up_split_files(bkf, original_files=original_contents,
+                            folder=os.path.join("data", "initial/"))
+
     print("Done!")

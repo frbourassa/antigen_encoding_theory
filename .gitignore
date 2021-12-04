@@ -19,3 +19,10 @@
 chancapmc/build/*.7
 *.bin
 data_old/
+
+# Add exceptions to include data files
+!data/initial/*.hdf
+!data/LOD/*.json
+!data/misc/*.json
+!data/trained-networks/*.npy
+!data/trained-networks/min_max-thomasRecommendedTraining.hdf 
