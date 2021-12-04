@@ -32,17 +32,29 @@ Unit tests in C are also available in the script `unittests.c`. Compile and exec
 More details can be found in the Github repository where this module is hosted separately: https://github.com/frbourassa/chancapmc .
 
 ### Downloading data
-Four compressed data files need to be unzipped in the appropriate folders before running the code.
- - ``antigen_encoding_cytokine_timeseries.zip``: unzip contents in ``data/initial/``. Contains the time series data.
- - ``antigen_encoding_cytokine_lods.zip``: unzip contents in ``data/LOD/``. Contains limits of detection used to process some files (this one is not essential, the code can run without it).
- - ``antigen_encoding_data_misc.zip``: unzip contents in ``data/misc/``. Contains plotting parameters and EC50 values for antigens.
- - ``antigen_encoding_trained_networks.zip``: unzip contents in ``data/trained-networks/``. Contains projection matrix and normalization factors to construct the latent space, and also other weight matrices of the default neural network.
+Data is tracked in the git repository and is downloaded with the code when the repository is cloned. There are starting data files in four folders:
 
-These files are available from the Github release notes of [v0.2.0-alpha](https://github.com/frbourassa/antigen_encoding_theory/releases/tag/v0.2.0-alpha). On demand, the output files of the code are also available, for users having trouble running the code themselves.
+ - `data/initial/`: Contains the raw cytokine time series data.
+ - `data/LOD`: Contains limits of detection used to process some files (this one is not essential, the code can run without it).
+ - `data/misc/`: Contains plotting parameters and EC50 values for antigens.
+ - `data/trained-networks/`: Contains projection matrix and normalization factors to construct the latent space, and also other weight matrices of the default neural network.
+
+Alternatively, if you want to download a version of the code without the data, or make sure the data you have is correct, look at release `v0.2.0-alpha`. The data files are then available as zip files from the Github release notes of [v0.2.0-alpha](https://github.com/frbourassa/antigen_encoding_theory/releases/tag/v0.2.0-alpha). But the official, up-to-date version of the code is currently `v1.0.0`, which includes data files in the git history.
+ - ``antigen_encoding_cytokine_timeseries.zip``: unzip contents in ``data/initial/``.
+ - ``antigen_encoding_cytokine_lods.zip``: unzip contents in ``data/LOD/``.
+ - ``antigen_encoding_data_misc.zip``: unzip contents in ``data/misc/``.
+ - ``antigen_encoding_trained_networks.zip``: unzip contents in ``data/trained-networks/``.
+
 
 ### Data preprocessing
-After downloading and unzipping the cytokine data files (HDF5 format) in ``data/initial/``, run the script ``run_first_prepare_data.py``, which will save cleaned up versions of the raw dataframes in ``data/final/``, then process all cytokine time series (log transformation, smoothing spline interpolation, time integration), and saved the processed time series in ``data/processed/``.
+After downloading the git repository along with the data (or unzipping the cytokine data files (HDF5 format) in ``data/initial/``, run the script ``run_first_prepare_data.py``, which will save cleaned up versions of the raw dataframes in ``data/final/``, then process all cytokine time series (log transformation, smoothing spline interpolation, time integration), and save the processed time series in ``data/processed/``.
 
+---
+**IMPORTANT**
+
+Run ``run_first_prepare_data.py`` the first time you download the code and data. Otherwise no analysis script will run.
+
+---
 
 
 ## Suggested order in which to run the code
