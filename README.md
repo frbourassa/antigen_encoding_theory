@@ -4,7 +4,7 @@ Repository with all the necessary code for modelling cytokine dynamics in latent
 > Sooraj R. Achar<sup>#</sup>, François X. P. Bourassa<sup>#</sup>, Thomas J. Rademaker<sup>#</sup>, Angela Lee, Taisuke Kondo, Emanuel Salazar-Cavazos, John S. Davies, Naomi Taylor, Paul François, and Grégoire Altan-Bonnet. _"Universal antigen encoding of T cell activation from high dimensional cytokine data"_,
 submitted, 2021. _(<sup>#</sup>: these authors contributed equally)_
 
-All cytokine time series data necessary to run the code is included in the Github repository. Also included are weights of the neural network that produces the latent space used throughout the paper, and a few other parameters (e.g., antigen functional EC<sub>50</sub>s). More neural networks can be trained and more cytokine data processing and fitting can be done using the `antigen-encoding-pipeline` user interface,
+All cytokine time series data necessary to run the code is included in the Github repository. Also included are weights of the neural network that produces the latent space used throughout the paper, and a few other parameters (e.g., antigen functional EC<sub>50</sub>s). More neural networks can be trained and more cytokine data processing and fitting can be done using the `antigen-encoding-pipeline user interface,
 [also hosted on Github](https://github.com/soorajachar/antigen-encoding-pipeline).
 
 
@@ -109,4 +109,4 @@ This repository is licensed under the GNU GPLv3.0 because one of the scripts (`e
 from [Grabowksi et al., 2019](https://dx.doi.org/10.1098/rsif.2018.0792),
 which is also licensed under GPLv3.0. Other dependencies are licensed under the BSD-3-Clause License, which is compatible with GPLv3.0.
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5758509.svg)](https://doi.org/10.5281/zenodo.5758509)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5758439.svg)](https://doi.org/10.5281/zenodo.5758439)
