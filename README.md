@@ -1,15 +1,10 @@
 # Antigen encoding from high dimensional cytokine dynamics – theory
 
-Repository with all the necessary code for modelling cytokine dynamics in
-latent space, generating back cytokine data with reconstruction from the
-latent space, and computing the channel capacity of cytokine dynamics for
-mutual information with antigen quality. The code generates all the
-necessary results to reproduce the main and supplementary figures related to theoretical parts (latent space modelling and channel capacity) of the paper
-> Achar, S., Bourassa, F.X.P., Rademaker, T., ..., François, P., and Altan-Bonnet, G.,
-"Universal antigen encoding of T cell activation from high dimensional cytokine data",
-submitted, 2021.
+Repository with all the necessary code for modelling cytokine dynamics in latent space, generating cytokine data with reconstruction from the latent space, and computing the channel capacity of cytokine dynamics for antigen quality. The code generates all the necessary results to reproduce main and supplementary figures related to theoretical parts of the paper
+> Sooraj R. Achar<sup>#</sup>, François X. P. Bourassa<sup>#</sup>, Thomas J. Rademaker<sup>#</sup>, Angela Lee, Taisuke Kondo, Emanuel Salazar-Cavazos, John S. Davies, Naomi Taylor, Paul François, and Grégoire Altan-Bonnet. _"Universal antigen encoding of T cell activation from high dimensional cytokine data"_,
+submitted, 2021. _(<sup>#</sup>: these authors contributed equally)_
 
-Weights of the neural network that produces the latent space used throughout the paper are provided, along with all data necessary to run the code. More neural networks can be trained and more cytokine data processing and fitting can be done using the cytokine-pipeline user interface,
+All cytokine time series data necessary to run the code is included in the Github repository. Also included are weights of the neural network that produces the latent space used throughout the paper, and a few other parameters (e.g., antigen functional EC<sub>50</sub>s). More neural networks can be trained and more cytokine data processing and fitting can be done using the `antigen-encoding-pipeline` user interface,
 [also hosted on Github](https://github.com/soorajachar/antigen-encoding-pipeline).
 
 
@@ -39,11 +34,6 @@ Data is tracked in the git repository and is downloaded with the code when the r
  - `data/misc/`: Contains plotting parameters and EC50 values for antigens.
  - `data/trained-networks/`: Contains projection matrix and normalization factors to construct the latent space, and also other weight matrices of the default neural network.
 
-Alternatively, if you want to download a version of the code without the data, or make sure the data you have is correct, look at release `v0.2.0-alpha`. The data files are then available as zip files from the Github release notes of [v0.2.0-alpha](https://github.com/frbourassa/antigen_encoding_theory/releases/tag/v0.2.0-alpha). But the official, up-to-date version of the code is currently `v1.0.0`, which includes data files in the git history.
- - ``antigen_encoding_cytokine_timeseries.zip``: unzip contents in ``data/initial/``.
- - ``antigen_encoding_cytokine_lods.zip``: unzip contents in ``data/LOD/``.
- - ``antigen_encoding_data_misc.zip``: unzip contents in ``data/misc/``.
- - ``antigen_encoding_trained_networks.zip``: unzip contents in ``data/trained-networks/``.
 
 
 ### Data preprocessing
