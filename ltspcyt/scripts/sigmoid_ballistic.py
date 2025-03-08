@@ -518,7 +518,7 @@ def return_param_and_fitted_latentspace_dfs(df, fittingFunctionName, reg_rate=1.
     datasets = list(pd.unique(df.index.get_level_values('Data')))
     for dataset in datasets:
         print(dataset)
-        datasetDf = df.xs([dataset], level=['Data'])
+        datasetDf = df.xs((dataset,), level=['Data'])
         if isinstance(reject_neg_slope, bool):
             v2_v1_ratio = compute_v2_v1(datasetDf, reject_neg_slope=reject_neg_slope)
         elif isinstance(reject_neg_slope, float):

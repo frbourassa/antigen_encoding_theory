@@ -15,9 +15,51 @@ import numpy as np
 import scipy as sp
 
 # Import scipy functions used by curve_fit
-from scipy.optimize.minpack import _initialize_feasible, _wrap_func, _wrap_jac, prepare_bounds
 from scipy.optimize import least_squares, OptimizeWarning
-from scipy.linalg import cholesky, LinAlgError, svd
+from scipy.linalg import cholesky, LinAlgError, svd, solve_triangular
+
+
+### Functions from former scipy.optimize.minpack, now deprecated
+def prepare_bounds(bounds, n):
+    lb, ub = [np.asarray(b, dtype=float) for b in bounds]
+    if lb.ndim == 0:
+        lb = np.resize(lb, n)
+
+    if ub.ndim == 0:
+        ub = np.resize(ub, n)
+
+    return lb, ub
+
+
+def _wrap_jac(jac, xdata, transform):
+    if transform is None:
+        def jac_wrapped(params):
+            return jac(xdata, *params)
+    elif transform.ndim == 1:
+        def jac_wrapped(params):
+            return transform[:, np.newaxis] * np.asarray(jac(xdata, *params))
+    else:
+        def jac_wrapped(params):
+            return solve_triangular(transform, np.asarray(jac(xdata, *params)), lower=True)
+    return jac_wrapped
+
+
+def _initialize_feasible(lb, ub):
+    p0 = np.ones_like(lb)
+    lb_finite = np.isfinite(lb)
+    ub_finite = np.isfinite(ub)
+
+    mask = lb_finite & ub_finite
+    p0[mask] = 0.5 * (lb[mask] + ub[mask])
+
+    mask = lb_finite & ~ub_finite
+    p0[mask] = lb[mask] + 1
+
+    mask = ~lb_finite & ub_finite
+    p0[mask] = ub[mask] - 1
+
+    return p0
+
 
 ### Custom wrappers to deal with scalar-to-vector functions and regularization
 # This is exactly the scipy wrapper but with func_kwargs.
