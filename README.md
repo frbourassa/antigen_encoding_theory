@@ -8,6 +8,26 @@ All cytokine time series data necessary to run the code is included in the Githu
 [also hosted on Github](https://github.com/soorajachar/antigen-encoding-pipeline).
 
 
+## Requirements
+The Python code was tested on Mac (macOS Catalina 10.15.7) and Linux (Linux 3.2.84-amd64-sata x86_64) with the Anaconda 2020.07 distribution, with the following versions for important packages:
+ - Python 3.7.6
+ - numpy 1.19.2
+ - scipy 1.5.2
+ - pandas 1.2.0
+ - matplotlib 3.3.2
+ - seaborn 0.11.1
+ - scikit-learn 0.23.2
+
+The following additional Python packages were installed and are necessary for specific scripts in the project (but not needed for most code):
+ - tensorflow 2.0.0 (macOS) or 2.3.0 (Linux)
+ - wurlitzer 2.0.1
+ - channel-capacity-estimator 1.0.1 (see [Github page](https://github.com/pawel-czyz/channel-capacity-estimator))
+
+The exact Python configuration used is included in ``data/python_environment.yml``.
+
+Moreover, a C compiler is necessary to build the module ``chancapmc`` (C code interfaced with the Python C API). The module was tested with compilers Apple ``clang 11.0.3`` (macOS) and GNU ``gcc 4.9.4`` (Linux).  
+
+
 
 ## Installation
 
@@ -74,25 +94,6 @@ The following diagram represents the main dependencies between most of the scrip
 
 ![Code structure diagram](figures/code_chart_short.svg)
 
-
-## Requirements
-The Python code was tested on Mac (macOS Catalina 10.15.7) and Linux (Linux 3.2.84-amd64-sata x86_64) with the Anaconda 2020.07 distribution, with the following versions for important packages:
- - Python 3.7.6
- - numpy 1.19.2
- - scipy 1.5.2
- - pandas 1.2.0
- - matplotlib 3.3.2
- - seaborn 0.11.1
- - scikit-learn 0.23.2
-
-The following additional Python packages were installed and are necessary for specific scripts in the project (but not needed for most code):
- - tensorflow 2.0.0 (macOS) or 2.3.0 (Linux)
- - wurlitzer 2.0.1
- - channel-capacity-estimator 1.0.1 (see [Github page](https://github.com/pawel-czyz/channel-capacity-estimator))
-
-The exact Python configuration used is included in ``data/python_environment.yml``.
-
-Moreover, a C compiler is necessary to build the module ``chancapmc`` (C code interfaced with the Python C API). The module was tested with compilers Apple ``clang 11.0.3`` (macOS) and GNU ``gcc 4.9.4`` (Linux).  
 
 ## Note on sub-modules
 The code modules `ltspcyt` (<ins>la</ins>tent <ins>sp</ins>ace <ins>cyt</ins>okines) and `chancapmc` (<ins>chan</ins>nel <ins>cap</ins>acity <ins>M</ins>onte <ins>C</ins>arlo) contain the core functions for data processing, latent space building, model fitting (`ltspcyt`), and channel capacity calculation (`chancapmc`).
